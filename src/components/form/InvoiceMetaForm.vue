@@ -39,7 +39,7 @@ function applyTaxRateToAllLines() {
 
     <div v-if="showTaxRate" class="flex items-end gap-3">
       <div class="w-32">
-        <BaseInput v-model.number="invoice.meta.defaultTaxRatePercent" type="number" label="Taux de TVA (%)" placeholder="18" />
+        <BaseInput v-model.number="invoice.meta.defaultTaxRatePercent" type="number" label="Taux de TVA (%)" placeholder="0" />
       </div>
       <button
         type="button"

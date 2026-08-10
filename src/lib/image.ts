@@ -1,11 +1,12 @@
-const MAX_LOGO_WIDTH = 400
+const DEFAULT_MAX_WIDTH = 400
 
 /** Downscales an uploaded image to a max width and re-encodes it as a
  * compressed JPEG data URL, so it stays cheap to store in localStorage and
- * is directly consumable by both <img src> and jsPDF's doc.addImage(). */
-export async function fileToCompressedDataUrl(file: File): Promise<string> {
+ * is directly consumable by both <img src> and jsPDF's doc.addImage(). Used
+ * for both the seller logo and an uploaded signature image. */
+export async function fileToCompressedDataUrl(file: File, maxWidth: number = DEFAULT_MAX_WIDTH): Promise<string> {
   const original = await loadImage(file)
-  const scale = Math.min(1, MAX_LOGO_WIDTH / original.width)
+  const scale = Math.min(1, maxWidth / original.width)
   const width = Math.round(original.width * scale)
   const height = Math.round(original.height * scale)
 
@@ -31,7 +32,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
     }
     img.onerror = () => {
       URL.revokeObjectURL(url)
-      reject(new Error('Impossible de charger l\'image'))
+      reject(new Error("Impossible de charger l'image"))
     }
     img.src = url
   })

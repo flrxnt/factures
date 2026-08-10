@@ -2,7 +2,9 @@ import type { Invoice, LineItem, SectionKey } from '../types/invoice'
 
 export const DEFAULT_CURRENCY = 'XOF'
 export const DEFAULT_LOCALE = 'fr-FR'
-export const DEFAULT_TAX_RATE_PERCENT = 18
+/** No tax applied by default — the user opts in per line or via "Appliquer à
+ * toutes les lignes" rather than every new invoice starting taxed. */
+export const DEFAULT_TAX_RATE_PERCENT = 0
 export const MAX_INVOICES = 50
 export const DEFAULT_THEME_COLOR = '#a24a2c'
 export const UNTITLED_INVOICE_NAME = 'Facture sans titre'
@@ -104,6 +106,7 @@ export function createEmptyInvoice(): Invoice {
       otherInstructions: '',
     },
     signatureLabel: '',
+    signatureImageDataUrl: '',
     footerNoteLeft: '',
     footerNoteRight: '',
     visibleSections: { ...DEFAULT_VISIBLE_SECTIONS },

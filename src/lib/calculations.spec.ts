@@ -70,8 +70,6 @@ describe('computeTotals', () => {
   })
 
   it('deducts withholding from the grand total, on top of VAT (not instead of it)', () => {
-    // 789 474 gross at 5% withholding -> 750 000 net payable (the inverse of
-    // "net / (1 - rate) = gross", per the user's worked example).
     const items = [item({ quantity: 1, unitPrice: 789474, taxRatePercent: 0 })]
     const totals = computeTotals(items, { type: 'percent', value: 0 }, false, { ratePercent: 5 }, true)
     expect(totals.grandTotal).toBe(789474)

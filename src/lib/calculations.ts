@@ -60,8 +60,7 @@ export function grandTotal(subtotalValue: number, discountValue: number, taxTota
  * Withholding convention (deliberately the mirror image of VAT): VAT is added
  * on top of the net subtotal (net × (1 + rate) = gross). A withholding tax /
  * "retenue à la source" instead is deducted from the grand total (gross ×
- * (1 - rate) = net payable) — e.g. a 5% withholding on a 789 474 total leaves
- * 750 000 net payable. Both can be active on the same invoice at once: VAT
+ * (1 - rate) = net payable) — Both can be active on the same invoice at once: VAT
  * still grosses up the subtotal into the total, then withholding is taken
  * off that total separately.
  */

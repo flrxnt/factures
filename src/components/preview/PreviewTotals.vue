@@ -15,6 +15,10 @@ const props = defineProps<{
  * toggled on AND has a non-zero effect — a 0% rate shouldn't leave the
  * totals block with no emphasized final line at all. */
 const withholdingActive = computed(() => props.showWithholding && props.totals.withholdingAmount > 0)
+
+/** A 0% tax group (the default for new lines) contributes nothing to the
+ * total — showing "TVA 0% : 0" would just be noise. */
+const visibleTaxGroups = computed(() => props.totals.taxGroups.filter((group) => group.rate > 0))
 </script>
 
 <template>
@@ -27,7 +31,7 @@ const withholdingActive = computed(() => props.showWithholding && props.totals.w
       <span>Remise</span>
       <span class="tabular-nums">-{{ formatCurrency(totals.discountAmount, currency, locale) }}</span>
     </div>
-    <div v-for="group in totals.taxGroups" :key="group.rate" class="flex justify-between text-ink-soft">
+    <div v-for="group in visibleTaxGroups" :key="group.rate" class="flex justify-between text-ink-soft">
       <span>TVA {{ group.rate }}%</span>
       <span class="tabular-nums">{{ formatCurrency(group.amount, currency, locale) }}</span>
     </div>

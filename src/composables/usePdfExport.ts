@@ -1,12 +1,15 @@
 import type { Invoice } from '../types/invoice'
-import { downloadInvoicePdf } from '../lib/pdf/generateInvoicePdf'
-import { useInvoiceHistory } from './useInvoiceHistory'
+import { generateInvoicePdf } from '../lib/pdf/generateInvoicePdf'
+import { sanitizeFilename } from '../lib/filename'
+import { useInvoiceCollection } from './useInvoiceCollection'
 
 export function usePdfExport() {
-  const { save } = useInvoiceHistory()
+  const { save } = useInvoiceCollection()
 
   function exportPdf(invoice: Invoice) {
-    downloadInvoicePdf(invoice)
+    const doc = generateInvoicePdf(invoice)
+    const fallback = invoice.meta.invoiceNumber ? `facture-${invoice.meta.invoiceNumber}` : 'facture'
+    doc.save(`${sanitizeFilename(invoice.name, fallback)}.pdf`)
     save(invoice)
   }
 

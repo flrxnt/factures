@@ -98,6 +98,9 @@ export interface Invoice {
   termsAndConditions: string
   payment: PaymentDetails
   signatureLabel: string
+  /** Hand-drawn (canvas) or uploaded signature image, data URL — empty string
+   * if none. Same storage regardless of how it was captured. */
+  signatureImageDataUrl: string
   /** Free-text notes shown at the very bottom of the page, left/right — for
    * complementary info (legal mentions, registration numbers, etc.). */
   footerNoteLeft: string

@@ -48,13 +48,7 @@ export function generateInvoicePdf(invoice: Invoice): jsPDF {
     BLOCK_DRAWERS[key]?.(doc, invoice, cursor)
   }
 
-  drawFooter(doc)
+  drawFooter(doc, invoice)
 
   return doc
-}
-
-export function downloadInvoicePdf(invoice: Invoice): void {
-  const doc = generateInvoicePdf(invoice)
-  const filename = invoice.meta.invoiceNumber ? `facture-${invoice.meta.invoiceNumber}.pdf` : 'facture.pdf'
-  doc.save(filename)
 }

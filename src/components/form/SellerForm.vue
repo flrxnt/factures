@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CompanyInfo } from '../../types/invoice'
 import BaseInput from '../ui/BaseInput.vue'
-import FileDropLogo from './FileDropLogo.vue'
+import FileDropImage from './FileDropImage.vue'
 
 defineProps<{
   seller: CompanyInfo
@@ -12,7 +12,7 @@ defineProps<{
 <template>
   <fieldset class="space-y-4">
     <legend class="font-display text-lg text-ink">Émetteur</legend>
-    <FileDropLogo v-if="showLogo" v-model="seller.logoDataUrl" />
+    <FileDropImage v-if="showLogo" v-model="seller.logoDataUrl" label="Logo" />
     <BaseInput v-model="seller.name" label="Nom de l'entreprise" placeholder="Ma Société SARL" required />
     <div class="grid grid-cols-2 gap-4">
       <BaseInput v-model="seller.addressLine1" label="Adresse" placeholder="123 rue du Commerce" />

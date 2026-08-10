@@ -9,6 +9,7 @@ import PreviewTotals from './PreviewTotals.vue'
 import PreviewNotes from './PreviewNotes.vue'
 import PreviewPayment from './PreviewPayment.vue'
 import PreviewSignature from './PreviewSignature.vue'
+import PreviewFooter from './PreviewFooter.vue'
 
 const props = defineProps<{
   invoice: Invoice
@@ -51,6 +52,16 @@ const { totals } = useInvoiceTotals(props.invoice)
 
     <PreviewPayment v-if="invoice.visibleSections.paymentDetails" :payment="invoice.payment" />
 
-    <PreviewSignature v-if="invoice.visibleSections.signature" :signature-label="invoice.signatureLabel" />
+    <PreviewSignature
+      v-if="invoice.visibleSections.signature"
+      :signature-label="invoice.signatureLabel"
+      :signature-image-data-url="invoice.signatureImageDataUrl"
+    />
+
+    <PreviewFooter
+      v-if="invoice.visibleSections.footer"
+      :footer-note-left="invoice.footerNoteLeft"
+      :footer-note-right="invoice.footerNoteRight"
+    />
   </div>
 </template>

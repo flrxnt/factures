@@ -1,47 +1,52 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed } from 'vue'
 import { useInvoiceStore } from './composables/useInvoiceStore'
-import { loadDraft, useDraftAutosave } from './composables/useDraftPersistence'
-import { useInvoiceHistory } from './composables/useInvoiceHistory'
+import { useInvoiceCollection } from './composables/useInvoiceCollection'
+import { useAppNavigation } from './composables/useAppNavigation'
 import { usePdfExport } from './composables/usePdfExport'
 import AppHeader from './components/layout/AppHeader.vue'
 import TwoPaneLayout from './components/layout/TwoPaneLayout.vue'
 import InvoiceForm from './components/form/InvoiceForm.vue'
 import InvoicePreview from './components/preview/InvoicePreview.vue'
-import InvoiceHistoryDrawer from './components/history/InvoiceHistoryDrawer.vue'
+import DashboardView from './components/dashboard/DashboardView.vue'
 
-const { invoice, replaceInvoice, resetToNew } = useInvoiceStore()
-const { cloneAsDraft } = useInvoiceHistory()
+const { invoice, replaceInvoice } = useInvoiceStore()
+const { create, cloneForEditing, useAutosave } = useInvoiceCollection()
+const { view, openDashboard, openEditor } = useAppNavigation()
 const { exportPdf } = usePdfExport()
 
-const historyOpen = ref(false)
+// The store's `invoice` object identity never changes (replaceInvoice mutates
+// it in place), so a single autosave watcher set up once here keeps working
+// across every invoice the user opens during the session.
+useAutosave(invoice)
 
-onMounted(() => {
-  const draft = loadDraft()
-  if (draft) replaceInvoice(draft)
-})
+const invoiceName = computed(() => invoice.name)
 
-const stopAutosave = useDraftAutosave(invoice)
-onUnmounted(stopAutosave)
-
-function handleNew() {
-  if (confirm('Repartir sur une facture vierge ? Le brouillon actuel sera remplacé.')) {
-    resetToNew()
-  }
+function handleCreate() {
+  const draft = create()
+  replaceInvoice(draft)
+  openEditor(draft.id)
 }
 
-function handleLoadFromHistory(id: string) {
-  const draft = cloneAsDraft(id)
-  if (draft) replaceInvoice(draft)
-  historyOpen.value = false
+function handleOpen(id: string) {
+  const clone = cloneForEditing(id)
+  if (!clone) return
+  replaceInvoice(clone)
+  openEditor(id)
+}
+
+function handleRename(name: string) {
+  invoice.name = name
 }
 </script>
 
 <template>
   <div class="min-h-screen bg-paper font-sans text-ink">
-    <AppHeader @new="handleNew" @history="historyOpen = true" @export="exportPdf(invoice)" />
+    <AppHeader :view="view" :invoice-name="invoiceName" @back="openDashboard" @rename="handleRename" @export="exportPdf(invoice)" />
 
-    <TwoPaneLayout>
+    <DashboardView v-if="view === 'dashboard'" @create="handleCreate" @open="handleOpen" />
+
+    <TwoPaneLayout v-else>
       <template #form>
         <InvoiceForm :invoice="invoice" />
       </template>
@@ -49,7 +54,5 @@ function handleLoadFromHistory(id: string) {
         <InvoicePreview :invoice="invoice" />
       </template>
     </TwoPaneLayout>
-
-    <InvoiceHistoryDrawer :open="historyOpen" @close="historyOpen = false" @load="handleLoadFromHistory" />
   </div>
 </template>

@@ -13,6 +13,7 @@ import WithholdingForm from './WithholdingForm.vue'
 import NotesForm from './NotesForm.vue'
 import PaymentDetailsForm from './PaymentDetailsForm.vue'
 import SignatureForm from './SignatureForm.vue'
+import FooterNotesForm from './FooterNotesForm.vue'
 
 const props = defineProps<{
   invoice: Invoice
@@ -78,8 +79,12 @@ function removeItem(id: string) {
       <PaymentDetailsForm :payment="invoice.payment" />
     </div>
 
-    <div v-if="invoice.visibleSections.signature" class="pt-8">
+    <div v-if="invoice.visibleSections.signature" class="py-8">
       <SignatureForm :invoice="invoice" />
+    </div>
+
+    <div v-if="invoice.visibleSections.footer" class="pt-8">
+      <FooterNotesForm :invoice="invoice" />
     </div>
   </div>
 </template>

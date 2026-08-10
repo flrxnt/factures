@@ -20,6 +20,7 @@ export function drawTotals(doc: jsPDF, invoice: Invoice, cursor: PdfCursor, tota
     rows.push(['Remise', `-${formatCurrency(totals.discountAmount, currency, locale)}`])
   }
   for (const group of totals.taxGroups) {
+    if (group.rate <= 0) continue // 0% contributes nothing — no need to clutter the totals block
     rows.push([`TVA ${group.rate}%`, formatCurrency(group.amount, currency, locale)])
   }
   rows.push(['Total', formatCurrency(totals.grandTotal, currency, locale), !withholdingActive])
