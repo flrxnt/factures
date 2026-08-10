@@ -17,18 +17,26 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
  * sidesteps inconsistent/oddly-spaced symbol rendering across environments.
  * Falls back to a plain "<amount> <code>" for currency codes Intl doesn't
  * recognize (custom/regional codes not in ISO 4217 data). */
+/** Intl's fr-FR (and others) grouping separator is a narrow no-break space
+ * (U+202F) — jsPDF's built-in fonts (helvetica/times, WinAnsi-encoded) have
+ * no glyph for it and fall back to a garbage character (rendered as "/" in
+ * the generated PDF). Normalized to a plain space everywhere, which is
+ * visually near-identical on screen and safe in the PDF. */
+function normalizeSpaces(text: string): string {
+  return text.replace(/[  ]/g, ' ')
+}
+
 export function formatCurrency(amount: number, currency: string, locale: string): string {
   const code = (currency || 'XOF').trim().toUpperCase()
   try {
-    const numberPart = new Intl.NumberFormat(locale, { style: 'currency', currency: code, currencyDisplay: 'code' })
-      .format(amount)
-      .replace(code, '')
-      .trim()
+    const numberPart = normalizeSpaces(
+      new Intl.NumberFormat(locale, { style: 'currency', currency: code, currencyDisplay: 'code' }).format(amount).replace(code, '').trim(),
+    )
     const symbol = CURRENCY_SYMBOLS[code] ?? code
     return `${numberPart} ${symbol}`
   } catch {
     const rounded = Math.round((amount + Number.EPSILON) * 100) / 100
-    return `${rounded.toLocaleString(locale)} ${code}`
+    return `${normalizeSpaces(rounded.toLocaleString(locale))} ${code}`
   }
 }
 

@@ -18,6 +18,7 @@ export const SECTION_ORDER: SectionDescriptor[] = [
   { key: 'quantityColumn', labelFr: 'Colonne quantité' },
   { key: 'unitPriceColumn', labelFr: 'Colonne prix unitaire' },
   { key: 'taxColumn', labelFr: 'Colonne taxe' },
+  { key: 'lineTotalColumn', labelFr: 'Colonne montant' },
   { key: 'discount', labelFr: 'Remise' },
   { key: 'notes', labelFr: 'Notes et conditions' },
   { key: 'paymentDetails', labelFr: 'Coordonnées bancaires' },

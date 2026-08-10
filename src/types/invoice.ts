@@ -7,6 +7,7 @@ export type SectionKey =
   | 'quantityColumn'
   | 'unitPriceColumn'
   | 'taxColumn'
+  | 'lineTotalColumn'
   | 'discount'
   | 'notes'
   | 'paymentDetails'
@@ -88,6 +89,9 @@ export interface Invoice {
    * price, totals are computed from the lines instead and this is ignored.
    */
   manualSubtotal: number | null
+  /** Hex color (e.g. "#a24a2c") driving the accent color of this specific
+   * invoice's preview and PDF — not a global app setting. */
+  themeColor: string
   createdAt: string
   updatedAt: string
 }

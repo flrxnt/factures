@@ -32,3 +32,15 @@ export const PDF_THEME = {
     betweenBlocks: 8,
   },
 }
+
+const HEX_COLOR_PATTERN = /^#([0-9a-f]{6})$/i
+
+/** Parses a "#rrggbb" hex color (the format stored on Invoice.themeColor)
+ * into the [r,g,b] tuple jsPDF's setTextColor/setDrawColor/setFillColor
+ * expect, falling back to the default accent for anything malformed. */
+export function hexToRgb(hex: string): [number, number, number] {
+  const match = HEX_COLOR_PATTERN.exec(hex)
+  if (!match) return PDF_THEME.colors.accent
+  const value = match[1]
+  return [parseInt(value.slice(0, 2), 16), parseInt(value.slice(2, 4), 16), parseInt(value.slice(4, 6), 16)]
+}

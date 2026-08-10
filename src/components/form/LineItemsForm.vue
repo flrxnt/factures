@@ -10,6 +10,7 @@ const props = defineProps<{
   showQuantityColumn: boolean
   showUnitPriceColumn: boolean
   showTaxColumn: boolean
+  showLineTotalColumn: boolean
   currency: string
   locale: string
 }>()
@@ -20,7 +21,12 @@ const emit = defineEmits<{
 }>()
 
 const gridTemplate = computed(() =>
-  buildFormRowGridTemplate({ showQuantity: props.showQuantityColumn, showUnitPrice: props.showUnitPriceColumn, showTax: props.showTaxColumn }),
+  buildFormRowGridTemplate({
+    showQuantity: props.showQuantityColumn,
+    showUnitPrice: props.showUnitPriceColumn,
+    showTax: props.showTaxColumn,
+    showLineTotal: props.showLineTotalColumn,
+  }),
 )
 
 /** Line amounts are optional (a line can be purely descriptive), but once at
@@ -48,7 +54,7 @@ const hasMixedAmounts = computed(() => {
           <span v-if="showQuantityColumn" class="text-right">Qté</span>
           <span v-if="showUnitPriceColumn" class="text-right">Prix unitaire</span>
           <span v-if="showTaxColumn" class="text-right">TVA %</span>
-          <span class="text-right">Total</span>
+          <span v-if="showLineTotalColumn" class="text-right">Montant</span>
           <span></span>
         </div>
 
@@ -59,6 +65,7 @@ const hasMixedAmounts = computed(() => {
           :show-quantity-column="showQuantityColumn"
           :show-unit-price-column="showUnitPriceColumn"
           :show-tax-column="showTaxColumn"
+          :show-line-total-column="showLineTotalColumn"
           :currency="currency"
           :locale="locale"
           @remove="emit('remove', item.id)"

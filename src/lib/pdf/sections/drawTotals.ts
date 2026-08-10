@@ -4,7 +4,7 @@ import type { PdfCursor } from '../pdfCursor'
 import type { InvoiceTotals } from '../../../lib/calculations'
 import { PDF_PAGE, PDF_CONTENT_WIDTH } from '../../../config/invoiceLayout'
 import { formatCurrency } from '../../../composables/useCurrencyFormat'
-import { PDF_THEME } from '../pdfTheme'
+import { PDF_THEME, hexToRgb } from '../pdfTheme'
 
 const ROW_HEIGHT = 5.5
 
@@ -39,7 +39,7 @@ export function drawTotals(doc: jsPDF, invoice: Invoice, cursor: PdfCursor, tota
       doc.setFontSize(PDF_THEME.font.sizeTotal)
       doc.setTextColor(...PDF_THEME.colors.ink)
       doc.text(label, labelX, y)
-      doc.setTextColor(...PDF_THEME.colors.accent)
+      doc.setTextColor(...hexToRgb(invoice.themeColor))
       doc.text(value, right, y, { align: 'right' })
     } else {
       doc.setFont(PDF_THEME.font.body, 'normal')

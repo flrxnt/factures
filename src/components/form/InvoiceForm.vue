@@ -2,6 +2,7 @@
 import type { Invoice } from '../../types/invoice'
 import { createEmptyLineItem } from '../../config/defaults'
 import SectionToggles from './SectionToggles.vue'
+import ThemeForm from './ThemeForm.vue'
 import SellerForm from './SellerForm.vue'
 import ClientForm from './ClientForm.vue'
 import InvoiceMetaForm from './InvoiceMetaForm.vue'
@@ -28,7 +29,8 @@ function removeItem(id: string) {
 
 <template>
   <div class="divide-y divide-hairline">
-    <div class="pb-8">
+    <div class="space-y-6 pb-8">
+      <ThemeForm :invoice="invoice" />
       <SectionToggles :invoice="invoice" />
     </div>
 
@@ -47,6 +49,7 @@ function removeItem(id: string) {
         :show-quantity-column="invoice.visibleSections.quantityColumn"
         :show-unit-price-column="invoice.visibleSections.unitPriceColumn"
         :show-tax-column="invoice.visibleSections.taxColumn"
+        :show-line-total-column="invoice.visibleSections.lineTotalColumn"
         :currency="invoice.meta.currency"
         :locale="invoice.meta.locale"
         @add="addItem"

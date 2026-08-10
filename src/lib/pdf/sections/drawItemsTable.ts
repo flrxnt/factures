@@ -12,6 +12,7 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
     showQuantity: invoice.visibleSections.quantityColumn,
     showUnitPrice: invoice.visibleSections.unitPriceColumn,
     showTax: invoice.visibleSections.taxColumn,
+    showLineTotal: invoice.visibleSections.lineTotalColumn,
   })
   const { currency, locale } = invoice.meta
 

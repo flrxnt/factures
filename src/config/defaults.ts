@@ -4,6 +4,21 @@ export const DEFAULT_CURRENCY = 'XOF'
 export const DEFAULT_LOCALE = 'fr-FR'
 export const DEFAULT_TAX_RATE_PERCENT = 18
 export const MAX_HISTORY_ENTRIES = 50
+export const DEFAULT_THEME_COLOR = '#a24a2c'
+
+/** Curated preset swatches for the per-invoice theme picker — muted hues
+ * chosen to stay legible on the paper background and in the PDF. Users can
+ * still pick any custom color via the native color input. */
+export const THEME_COLOR_PRESETS = [
+  { label: 'Terracotta', value: '#a24a2c' },
+  { label: 'Forêt', value: '#3f6b4f' },
+  { label: 'Marine', value: '#2c4a6e' },
+  { label: 'Bordeaux', value: '#7d2e3b' },
+  { label: 'Ocre', value: '#a97c1f' },
+  { label: 'Ardoise', value: '#3d5772' },
+  { label: 'Prune', value: '#6a3d6e' },
+  { label: 'Encre', value: '#2a2820' },
+]
 
 export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
   logo: true,
@@ -14,6 +29,7 @@ export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
   quantityColumn: true,
   unitPriceColumn: true,
   taxColumn: true,
+  lineTotalColumn: true,
   discount: false,
   notes: true,
   paymentDetails: true,
@@ -83,6 +99,7 @@ export function createEmptyInvoice(): Invoice {
     signatureLabel: '',
     visibleSections: { ...DEFAULT_VISIBLE_SECTIONS },
     manualSubtotal: null,
+    themeColor: DEFAULT_THEME_COLOR,
     createdAt: now,
     updatedAt: now,
   }

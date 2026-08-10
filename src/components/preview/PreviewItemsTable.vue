@@ -10,12 +10,18 @@ const props = defineProps<{
   showQuantityColumn: boolean
   showUnitPriceColumn: boolean
   showTaxColumn: boolean
+  showLineTotalColumn: boolean
   currency: string
   locale: string
 }>()
 
 const columns = computed(() =>
-  buildItemsColumns({ showQuantity: props.showQuantityColumn, showUnitPrice: props.showUnitPriceColumn, showTax: props.showTaxColumn }),
+  buildItemsColumns({
+    showQuantity: props.showQuantityColumn,
+    showUnitPrice: props.showUnitPriceColumn,
+    showTax: props.showTaxColumn,
+    showLineTotal: props.showLineTotalColumn,
+  }),
 )
 const gridTemplate = computed(() => columns.value.map((c) => `${c.width}fr`).join(' '))
 

@@ -18,7 +18,11 @@ const { totals } = useInvoiceTotals(props.invoice)
 </script>
 
 <template>
-  <div id="invoice-preview" class="mx-auto w-full max-w-[794px] space-y-8 border border-hairline bg-surface p-8 text-ink shadow-[0_1px_2px_rgba(28,26,20,0.04)] sm:p-12">
+  <div
+    id="invoice-preview"
+    class="mx-auto w-full max-w-[794px] space-y-8 border border-hairline bg-surface p-8 text-ink shadow-[0_1px_2px_rgba(28,26,20,0.04)] sm:p-12"
+    :style="{ '--color-accent': invoice.themeColor }"
+  >
     <PreviewHeader v-if="invoice.visibleSections.sellerInfo" :seller="invoice.seller" :show-logo="invoice.visibleSections.logo" />
 
     <PreviewMeta v-if="invoice.visibleSections.invoiceMeta" :meta="invoice.meta" :show-due-date="invoice.visibleSections.dueDate" />
@@ -30,6 +34,7 @@ const { totals } = useInvoiceTotals(props.invoice)
       :show-quantity-column="invoice.visibleSections.quantityColumn"
       :show-unit-price-column="invoice.visibleSections.unitPriceColumn"
       :show-tax-column="invoice.visibleSections.taxColumn"
+      :show-line-total-column="invoice.visibleSections.lineTotalColumn"
       :currency="invoice.meta.currency"
       :locale="invoice.meta.locale"
     />

@@ -27,6 +27,6 @@ defineProps<{
         <p v-if="seller.phone">{{ seller.phone }}</p>
       </div>
     </div>
-    <p class="font-display text-4xl text-ink italic">Facture</p>
+    <p class="font-display text-4xl text-accent italic">Facture</p>
   </div>
 </template>

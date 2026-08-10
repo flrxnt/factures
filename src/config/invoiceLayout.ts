@@ -11,24 +11,25 @@ const DESCRIPTION_COLUMN: ItemsColumnDef = { key: 'description', labelFr: 'Descr
 const QUANTITY_COLUMN: ItemsColumnDef = { key: 'quantity', labelFr: 'Qté', width: 0.12, align: 'right' }
 const UNIT_PRICE_COLUMN: ItemsColumnDef = { key: 'unitPrice', labelFr: 'Prix unitaire', width: 0.18, align: 'right' }
 const TAX_RATE_COLUMN: ItemsColumnDef = { key: 'taxRate', labelFr: 'TVA', width: 0.1, align: 'right' }
-const LINE_TOTAL_COLUMN: ItemsColumnDef = { key: 'lineTotal', labelFr: 'Total', width: 0.18, align: 'right' }
+const LINE_TOTAL_COLUMN: ItemsColumnDef = { key: 'lineTotal', labelFr: 'Montant', width: 0.18, align: 'right' }
 
 export interface ItemsColumnVisibility {
   showQuantity: boolean
   showUnitPrice: boolean
   showTax: boolean
+  showLineTotal: boolean
 }
 
 /** Builds the active column list (with widths re-normalized to sum to 1).
- * `description` and `lineTotal` are always present; the rest are optional,
- * each independently toggleable (visibleSections.quantityColumn/unitPriceColumn/taxColumn). */
-export function buildItemsColumns({ showQuantity, showUnitPrice, showTax }: ItemsColumnVisibility): ItemsColumnDef[] {
+ * `description` is always present; every other column is optional, each
+ * independently toggleable (visibleSections.quantityColumn/unitPriceColumn/taxColumn/lineTotalColumn). */
+export function buildItemsColumns({ showQuantity, showUnitPrice, showTax, showLineTotal }: ItemsColumnVisibility): ItemsColumnDef[] {
   const columns = [
     DESCRIPTION_COLUMN,
     ...(showQuantity ? [QUANTITY_COLUMN] : []),
     ...(showUnitPrice ? [UNIT_PRICE_COLUMN] : []),
     ...(showTax ? [TAX_RATE_COLUMN] : []),
-    LINE_TOTAL_COLUMN,
+    ...(showLineTotal ? [LINE_TOTAL_COLUMN] : []),
   ]
   const totalWidth = columns.reduce((sum, c) => sum + c.width, 0)
   return columns.map((c) => ({ ...c, width: c.width / totalWidth }))
@@ -39,12 +40,13 @@ export function buildItemsColumns({ showQuantity, showUnitPrice, showTax }: Item
  * column plus a fixed-width column per visible toggle, and a remove-button
  * column. Shared by LineItemsForm.vue's header row and LineItemRow.vue so
  * they always stay aligned. */
-export function buildFormRowGridTemplate({ showQuantity, showUnitPrice, showTax }: ItemsColumnVisibility): string {
+export function buildFormRowGridTemplate({ showQuantity, showUnitPrice, showTax, showLineTotal }: ItemsColumnVisibility): string {
   const columns = ['1fr']
   if (showQuantity) columns.push('4.5rem')
   if (showUnitPrice) columns.push('7rem')
   if (showTax) columns.push('4.5rem')
-  columns.push('7rem', '2rem')
+  if (showLineTotal) columns.push('7rem')
+  columns.push('2rem')
   return columns.join(' ')
 }
 

@@ -2,7 +2,7 @@ import type { jsPDF } from 'jspdf'
 import type { Invoice } from '../../../types/invoice'
 import type { PdfCursor } from '../pdfCursor'
 import { PDF_PAGE, PDF_CONTENT_WIDTH } from '../../../config/invoiceLayout'
-import { PDF_THEME } from '../pdfTheme'
+import { PDF_THEME, hexToRgb } from '../pdfTheme'
 
 const LOGO_SIZE = 16
 
@@ -48,7 +48,7 @@ export function drawHeader(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): voi
 
   doc.setFont(PDF_THEME.font.display, 'bolditalic')
   doc.setFontSize(PDF_THEME.font.sizeTitle)
-  doc.setTextColor(...PDF_THEME.colors.ink)
+  doc.setTextColor(...hexToRgb(invoice.themeColor))
   doc.text('Facture', left + PDF_CONTENT_WIDTH, startY + 7, { align: 'right' })
 
   const blockHeight = Math.max(LOGO_SIZE, lineY - startY)
