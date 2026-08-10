@@ -1,0 +1,7 @@
+# Pin nixpkgs to the revision where nodejs_22 = 22.12.0.
+# This is required because Nixpacks resolves only major Node versions.
+[phases.setup]
+nixpkgsArchive = "e4f44407a7a9a5561cd6b589a6d27e7a8f91a720"
+
+[variables]
+NIXPACKS_NODE_VERSION = "22"
