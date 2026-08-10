@@ -1,0 +1,79 @@
+import type { Discount, LineItem } from '../types/invoice'
+
+/** Rounds to the nearest cent to avoid floating-point artifacts (e.g. 0.1 + 0.2). */
+export function roundCurrency(n: number): number {
+  return Math.round((n + Number.EPSILON) * 100) / 100
+}
+
+export function lineTotal(item: LineItem): number {
+  return roundCurrency(item.quantity * item.unitPrice)
+}
+
+export function subtotal(items: LineItem[]): number {
+  return roundCurrency(items.reduce((sum, item) => sum + lineTotal(item), 0))
+}
+
+export interface TaxGroup {
+  rate: number
+  base: number
+  amount: number
+}
+
+/**
+ * Tax convention: each line's tax is computed on that line's own pre-discount
+ * amount, then grouped by rate for display (e.g. "TVA 18% : 12 000"). The
+ * discount (when enabled) is a single global row applied to the subtotal
+ * afterwards, not redistributed back across each line's tax base. This is a
+ * simple, common convention — not the only valid one — chosen to keep the
+ * "single discount row" requirement straightforward.
+ */
+export function taxGroups(items: LineItem[]): TaxGroup[] {
+  const byRate = new Map<number, number>()
+  for (const item of items) {
+    const base = lineTotal(item)
+    byRate.set(item.taxRatePercent, (byRate.get(item.taxRatePercent) ?? 0) + base)
+  }
+  return [...byRate.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([rate, base]) => ({
+      rate,
+      base: roundCurrency(base),
+      amount: roundCurrency((base * rate) / 100),
+    }))
+}
+
+export function taxTotal(items: LineItem[]): number {
+  return roundCurrency(taxGroups(items).reduce((sum, g) => sum + g.amount, 0))
+}
+
+export function discountAmount(subtotalValue: number, discount: Discount, enabled: boolean): number {
+  if (!enabled || discount.value <= 0) return 0
+  const amount = discount.type === 'percent' ? (subtotalValue * discount.value) / 100 : discount.value
+  return roundCurrency(Math.min(Math.max(amount, 0), subtotalValue))
+}
+
+export function grandTotal(subtotalValue: number, discountValue: number, taxTotalValue: number): number {
+  return roundCurrency(subtotalValue - discountValue + taxTotalValue)
+}
+
+export interface InvoiceTotals {
+  subtotal: number
+  taxGroups: TaxGroup[]
+  taxTotal: number
+  discountAmount: number
+  grandTotal: number
+}
+
+export function computeTotals(items: LineItem[], discount: Discount, discountEnabled: boolean): InvoiceTotals {
+  const sub = subtotal(items)
+  const groups = taxGroups(items)
+  const tax = taxTotal(items)
+  const disc = discountAmount(sub, discount, discountEnabled)
+  return {
+    subtotal: sub,
+    taxGroups: groups,
+    taxTotal: tax,
+    discountAmount: disc,
+    grandTotal: grandTotal(sub, disc, tax),
+  }
+}

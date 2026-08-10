@@ -1,0 +1,70 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { fileToCompressedDataUrl } from '../../lib/image'
+
+const props = defineProps<{
+  modelValue: string
+}>()
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+const isDragging = ref(false)
+const error = ref('')
+
+async function handleFile(file: File | undefined) {
+  error.value = ''
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    error.value = 'Le fichier doit être une image.'
+    return
+  }
+  try {
+    const dataUrl = await fileToCompressedDataUrl(file)
+    emit('update:modelValue', dataUrl)
+  } catch {
+    error.value = "Impossible de charger l'image."
+  }
+}
+
+function onDrop(event: DragEvent) {
+  isDragging.value = false
+  handleFile(event.dataTransfer?.files[0])
+}
+
+function onInputChange(event: Event) {
+  handleFile((event.target as HTMLInputElement).files?.[0])
+}
+
+function clearLogo() {
+  emit('update:modelValue', '')
+  error.value = ''
+}
+</script>
+
+<template>
+  <div>
+    <span class="mb-1 block text-sm font-medium text-slate-700">Logo</span>
+    <div
+      class="flex items-center gap-3 rounded-md border-2 border-dashed px-3 py-3 text-sm transition"
+      :class="isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300'"
+      @dragover.prevent="isDragging = true"
+      @dragleave.prevent="isDragging = false"
+      @drop.prevent="onDrop"
+    >
+      <img v-if="props.modelValue" :src="props.modelValue" alt="Logo" class="h-12 w-12 rounded object-contain ring-1 ring-slate-200" />
+      <div class="flex-1">
+        <label class="cursor-pointer text-indigo-600 hover:text-indigo-500">
+          <span>Choisir un fichier</span>
+          <input type="file" accept="image/*" class="hidden" @change="onInputChange" />
+        </label>
+        <span class="text-slate-500"> ou glisser-déposer une image</span>
+      </div>
+      <button v-if="props.modelValue" type="button" class="text-sm text-slate-500 hover:text-red-600" @click="clearLogo">
+        Retirer
+      </button>
+    </div>
+    <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
+  </div>
+</template>
