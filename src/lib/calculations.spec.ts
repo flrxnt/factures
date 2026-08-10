@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeTotals, discountAmount, lineTotal, roundCurrency, subtotal, taxGroups, taxTotal } from './calculations'
+import { computeTotals, discountAmount, lineTotal, netPayable, roundCurrency, subtotal, taxGroups, taxTotal, withholdingAmount } from './calculations'
 import type { LineItem } from '../types/invoice'
 
 function item(overrides: Partial<LineItem> = {}): LineItem {
@@ -65,5 +65,29 @@ describe('computeTotals', () => {
     expect(totals.discountAmount).toBe(1000)
     expect(totals.taxTotal).toBe(1800)
     expect(totals.grandTotal).toBe(10800)
+    expect(totals.withholdingAmount).toBe(0)
+    expect(totals.netPayable).toBe(10800)
+  })
+
+  it('deducts withholding from the grand total, on top of VAT (not instead of it)', () => {
+    // 789 474 gross at 5% withholding -> 750 000 net payable (the inverse of
+    // "net / (1 - rate) = gross", per the user's worked example).
+    const items = [item({ quantity: 1, unitPrice: 789474, taxRatePercent: 0 })]
+    const totals = computeTotals(items, { type: 'percent', value: 0 }, false, { ratePercent: 5 }, true)
+    expect(totals.grandTotal).toBe(789474)
+    expect(totals.withholdingAmount).toBe(39473.7)
+    expect(totals.netPayable).toBe(750000.3)
+  })
+})
+
+describe('withholdingAmount / netPayable', () => {
+  it('returns 0 when disabled', () => {
+    expect(withholdingAmount(789474, 5, false)).toBe(0)
+  })
+
+  it('computes the deduction and resulting net payable', () => {
+    const wh = withholdingAmount(789474, 5, true)
+    expect(wh).toBe(39473.7)
+    expect(netPayable(789474, wh)).toBe(750000.3)
   })
 })

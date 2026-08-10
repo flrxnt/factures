@@ -10,6 +10,10 @@ const ROW_HEIGHT = 5.5
 
 export function drawTotals(doc: jsPDF, invoice: Invoice, cursor: PdfCursor, totals: InvoiceTotals): void {
   const { currency, locale } = invoice.meta
+  // Only actually shifts emphasis to "Net à payer" once withholding is both
+  // toggled on AND has a non-zero effect — mirrors PreviewTotals.vue.
+  const withholdingActive = invoice.visibleSections.withholding && totals.withholdingAmount > 0
+
   const rows: [string, string, boolean?][] = [['Sous-total', formatCurrency(totals.subtotal, currency, locale)]]
 
   if (invoice.visibleSections.discount && totals.discountAmount > 0) {
@@ -18,7 +22,12 @@ export function drawTotals(doc: jsPDF, invoice: Invoice, cursor: PdfCursor, tota
   for (const group of totals.taxGroups) {
     rows.push([`TVA ${group.rate}%`, formatCurrency(group.amount, currency, locale)])
   }
-  rows.push(['Total', formatCurrency(totals.grandTotal, currency, locale), true])
+  rows.push(['Total', formatCurrency(totals.grandTotal, currency, locale), !withholdingActive])
+
+  if (withholdingActive) {
+    rows.push([`Retenue ${totals.withholdingRatePercent}%`, `-${formatCurrency(totals.withholdingAmount, currency, locale)}`])
+    rows.push(['Net à payer', formatCurrency(totals.netPayable, currency, locale), true])
+  }
 
   const blockHeight = rows.length * ROW_HEIGHT + 4
   cursor.ensureSpace(blockHeight)
@@ -28,8 +37,8 @@ export function drawTotals(doc: jsPDF, invoice: Invoice, cursor: PdfCursor, tota
   const labelX = right - boxWidth
   let y = cursor.y
 
-  for (const [label, value, isTotal] of rows) {
-    if (isTotal) {
+  for (const [label, value, isEmphasized] of rows) {
+    if (isEmphasized) {
       y += 2
       doc.setDrawColor(...PDF_THEME.colors.hairlineStrong)
       doc.setLineWidth(0.3)

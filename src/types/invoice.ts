@@ -9,9 +9,11 @@ export type SectionKey =
   | 'taxColumn'
   | 'lineTotalColumn'
   | 'discount'
+  | 'withholding'
   | 'notes'
   | 'paymentDetails'
   | 'signature'
+  | 'footer'
 
 export interface CompanyInfo {
   name: string
@@ -52,6 +54,16 @@ export interface Discount {
   value: number
 }
 
+/**
+ * A deduction taken from the grand total (TTC) — e.g. "retenue à la source" /
+ * income tax withholding — distinct from VAT: VAT is added on top of the
+ * subtotal (net × (1 + rate) = gross), withholding is subtracted from the
+ * total (gross × (1 - rate) = net payable). Both can be active at once.
+ */
+export interface Withholding {
+  ratePercent: number
+}
+
 export interface PaymentDetails {
   bankName: string
   accountHolder: string
@@ -73,15 +85,23 @@ export interface InvoiceMeta {
 export interface Invoice {
   id: string
   schemaVersion: number
+  /** User-editable document name shown on the dashboard and used (sanitized)
+   * as the downloaded PDF's filename — independent of meta.invoiceNumber. */
+  name: string
   meta: InvoiceMeta
   seller: CompanyInfo
   client: ClientInfo
   items: LineItem[]
   discount: Discount
+  withholding: Withholding
   notes: string
   termsAndConditions: string
   payment: PaymentDetails
   signatureLabel: string
+  /** Free-text notes shown at the very bottom of the page, left/right — for
+   * complementary info (legal mentions, registration numbers, etc.). */
+  footerNoteLeft: string
+  footerNoteRight: string
   visibleSections: Record<SectionKey, boolean>
   /**
    * Directly-entered subtotal, used only when no line item has an amount

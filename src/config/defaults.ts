@@ -3,8 +3,9 @@ import type { Invoice, LineItem, SectionKey } from '../types/invoice'
 export const DEFAULT_CURRENCY = 'XOF'
 export const DEFAULT_LOCALE = 'fr-FR'
 export const DEFAULT_TAX_RATE_PERCENT = 18
-export const MAX_HISTORY_ENTRIES = 50
+export const MAX_INVOICES = 50
 export const DEFAULT_THEME_COLOR = '#a24a2c'
+export const UNTITLED_INVOICE_NAME = 'Facture sans titre'
 
 /** Curated preset swatches for the per-invoice theme picker — muted hues
  * chosen to stay legible on the paper background and in the PDF. Users can
@@ -31,9 +32,11 @@ export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
   taxColumn: true,
   lineTotalColumn: true,
   discount: false,
+  withholding: false,
   notes: true,
   paymentDetails: true,
   signature: false,
+  footer: false,
 }
 
 function todayIso(): string {
@@ -51,6 +54,7 @@ export function createEmptyInvoice(): Invoice {
   return {
     id: crypto.randomUUID(),
     schemaVersion: 1,
+    name: '',
     meta: {
       invoiceNumber: '',
       issueDate: todayIso(),
@@ -87,6 +91,9 @@ export function createEmptyInvoice(): Invoice {
       type: 'percent',
       value: 0,
     },
+    withholding: {
+      ratePercent: 0,
+    },
     notes: '',
     termsAndConditions: '',
     payment: {
@@ -97,6 +104,8 @@ export function createEmptyInvoice(): Invoice {
       otherInstructions: '',
     },
     signatureLabel: '',
+    footerNoteLeft: '',
+    footerNoteRight: '',
     visibleSections: { ...DEFAULT_VISIBLE_SECTIONS },
     manualSubtotal: null,
     themeColor: DEFAULT_THEME_COLOR,

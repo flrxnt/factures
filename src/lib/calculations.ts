@@ -56,25 +56,57 @@ export function grandTotal(subtotalValue: number, discountValue: number, taxTota
   return roundCurrency(subtotalValue - discountValue + taxTotalValue)
 }
 
+/**
+ * Withholding convention (deliberately the mirror image of VAT): VAT is added
+ * on top of the net subtotal (net × (1 + rate) = gross). A withholding tax /
+ * "retenue à la source" instead is deducted from the grand total (gross ×
+ * (1 - rate) = net payable) — e.g. a 5% withholding on a 789 474 total leaves
+ * 750 000 net payable. Both can be active on the same invoice at once: VAT
+ * still grosses up the subtotal into the total, then withholding is taken
+ * off that total separately.
+ */
+export function withholdingAmount(grandTotalValue: number, ratePercent: number, enabled: boolean): number {
+  if (!enabled || ratePercent <= 0) return 0
+  return roundCurrency((grandTotalValue * ratePercent) / 100)
+}
+
+export function netPayable(grandTotalValue: number, withholdingValue: number): number {
+  return roundCurrency(grandTotalValue - withholdingValue)
+}
+
 export interface InvoiceTotals {
   subtotal: number
   taxGroups: TaxGroup[]
   taxTotal: number
   discountAmount: number
   grandTotal: number
+  withholdingRatePercent: number
+  withholdingAmount: number
+  netPayable: number
 }
 
-export function computeTotals(items: LineItem[], discount: Discount, discountEnabled: boolean): InvoiceTotals {
+export function computeTotals(
+  items: LineItem[],
+  discount: Discount,
+  discountEnabled: boolean,
+  withholding: { ratePercent: number } = { ratePercent: 0 },
+  withholdingEnabled = false,
+): InvoiceTotals {
   const sub = subtotal(items)
   const groups = taxGroups(items)
   const tax = taxTotal(items)
   const disc = discountAmount(sub, discount, discountEnabled)
+  const gt = grandTotal(sub, disc, tax)
+  const wh = withholdingAmount(gt, withholding.ratePercent, withholdingEnabled)
   return {
     subtotal: sub,
     taxGroups: groups,
     taxTotal: tax,
     discountAmount: disc,
-    grandTotal: grandTotal(sub, disc, tax),
+    grandTotal: gt,
+    withholdingRatePercent: withholding.ratePercent,
+    withholdingAmount: wh,
+    netPayable: netPayable(gt, wh),
   }
 }
 
@@ -89,24 +121,31 @@ export function hasLineAmounts(items: LineItem[]): boolean {
  * by the on-screen preview, the PDF generator, and history entries so they
  * can never disagree: line items with an amount always win; a directly-entered
  * subtotal only applies when no line has a price, using the invoice's default
- * tax rate as the (single) rate for that direct entry.
+ * tax rate as the (single) rate for that direct entry. Withholding is then
+ * applied on top of whichever grand total results, in both modes alike.
  */
 export function computeInvoiceTotals(invoice: Invoice): InvoiceTotals {
   const discountEnabled = invoice.visibleSections.discount
+  const withholdingEnabled = invoice.visibleSections.withholding
 
   if (!hasLineAmounts(invoice.items) && invoice.manualSubtotal !== null) {
     const sub = roundCurrency(invoice.manualSubtotal)
     const rate = invoice.meta.defaultTaxRatePercent
     const tax = roundCurrency((sub * rate) / 100)
     const disc = discountAmount(sub, invoice.discount, discountEnabled)
+    const gt = grandTotal(sub, disc, tax)
+    const wh = withholdingAmount(gt, invoice.withholding.ratePercent, withholdingEnabled)
     return {
       subtotal: sub,
       taxGroups: rate > 0 ? [{ rate, base: sub, amount: tax }] : [],
       taxTotal: tax,
       discountAmount: disc,
-      grandTotal: grandTotal(sub, disc, tax),
+      grandTotal: gt,
+      withholdingRatePercent: invoice.withholding.ratePercent,
+      withholdingAmount: wh,
+      netPayable: netPayable(gt, wh),
     }
   }
 
-  return computeTotals(invoice.items, invoice.discount, discountEnabled)
+  return computeTotals(invoice.items, invoice.discount, discountEnabled, invoice.withholding, withholdingEnabled)
 }

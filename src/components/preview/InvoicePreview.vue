@@ -42,6 +42,7 @@ const { totals } = useInvoiceTotals(props.invoice)
     <PreviewTotals
       :totals="totals"
       :show-discount="invoice.visibleSections.discount"
+      :show-withholding="invoice.visibleSections.withholding"
       :currency="invoice.meta.currency"
       :locale="invoice.meta.locale"
     />

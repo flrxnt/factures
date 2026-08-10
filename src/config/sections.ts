@@ -20,9 +20,11 @@ export const SECTION_ORDER: SectionDescriptor[] = [
   { key: 'taxColumn', labelFr: 'Colonne taxe' },
   { key: 'lineTotalColumn', labelFr: 'Colonne montant' },
   { key: 'discount', labelFr: 'Remise' },
+  { key: 'withholding', labelFr: 'Impôt sur le revenu (retenue)' },
   { key: 'notes', labelFr: 'Notes et conditions' },
   { key: 'paymentDetails', labelFr: 'Coordonnées bancaires' },
   { key: 'signature', labelFr: 'Signature' },
+  { key: 'footer', labelFr: 'Notes de bas de page' },
 ]
 
 /**
@@ -33,10 +35,11 @@ export const SECTION_ORDER: SectionDescriptor[] = [
  * BEFORE_ITEMS_TABLE / AFTER_ITEMS_TABLE below.
  *
  * The remaining keys (logo, dueDate, quantityColumn, unitPriceColumn,
- * taxColumn, discount) are sub-toggles consulted directly by the block that
- * contains them (sellerInfo reads `logo`, invoiceMeta reads `dueDate`, the
- * items table reads the column toggles, the totals block reads `discount`)
- * rather than being their own block.
+ * taxColumn, lineTotalColumn, discount, withholding) are sub-toggles
+ * consulted directly by the block that contains them (sellerInfo reads
+ * `logo`, invoiceMeta reads `dueDate`, the items table reads the column
+ * toggles, the totals block reads `discount`/`withholding`) rather than
+ * being their own block.
  */
 export const BLOCK_SECTION_ORDER: SectionKey[] = ['sellerInfo', 'invoiceMeta', 'clientInfo', 'notes', 'paymentDetails', 'signature']
 
