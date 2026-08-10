@@ -5,6 +5,7 @@ import type { PdfCursor } from '../pdfCursor'
 import { PDF_PAGE, PDF_CONTENT_WIDTH, buildItemsColumns } from '../../../config/invoiceLayout'
 import { lineTotal } from '../../../lib/calculations'
 import { formatCurrency } from '../../../composables/useCurrencyFormat'
+import { htmlToPlainText } from '../../../lib/richText'
 import { PDF_THEME } from '../pdfTheme'
 
 export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): void {
@@ -21,7 +22,7 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
     columns.map((col) => {
       switch (col.key) {
         case 'description':
-          return item.description || '—'
+          return htmlToPlainText(item.description) || '—'
         case 'quantity':
           return String(item.quantity)
         case 'unitPrice':

@@ -35,21 +35,6 @@ export function buildItemsColumns({ showQuantity, showUnitPrice, showTax, showLi
   return columns.map((c) => ({ ...c, width: c.width / totalWidth }))
 }
 
-/** Fixed-width CSS grid-template-columns for the editable line-items FORM row
- * (as opposed to the fluid `fr`-based preview/PDF table): a `1fr` description
- * column plus a fixed-width column per visible toggle, and a remove-button
- * column. Shared by LineItemsForm.vue's header row and LineItemRow.vue so
- * they always stay aligned. */
-export function buildFormRowGridTemplate({ showQuantity, showUnitPrice, showTax, showLineTotal }: ItemsColumnVisibility): string {
-  const columns = ['1fr']
-  if (showQuantity) columns.push('4.5rem')
-  if (showUnitPrice) columns.push('7rem')
-  if (showTax) columns.push('4.5rem')
-  if (showLineTotal) columns.push('7rem')
-  columns.push('2rem')
-  return columns.join(' ')
-}
-
 /** PDF page geometry (mm, A4). */
 export const PDF_PAGE = {
   width: 210,

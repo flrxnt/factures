@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import type { Invoice } from '../types/invoice'
+import type { Invoice, InvoiceStatus } from '../types/invoice'
 import { getItem, setItem } from '../lib/storage'
 import { MAX_INVOICES, createEmptyInvoice } from '../config/defaults'
 
@@ -68,6 +68,33 @@ function rename(id: string, name: string) {
   persist()
 }
 
+/** Updates status directly from the dashboard, without opening the editor. */
+function setStatus(id: string, status: InvoiceStatus) {
+  const entry = get(id)
+  if (!entry) return
+  entry.status = status
+  entry.updatedAt = new Date().toISOString()
+  persist()
+}
+
+/** Clones an entry as a brand-new independent invoice (fresh id/timestamps,
+ * "(copie)" appended to the name) and inserts it into the collection right
+ * next to the original. */
+function duplicate(id: string): Invoice | null {
+  const source = get(id)
+  if (!source) return null
+  const now = new Date().toISOString()
+  const copy: Invoice = JSON.parse(JSON.stringify(source))
+  copy.id = crypto.randomUUID()
+  copy.name = copy.name ? `${copy.name} (copie)` : ''
+  copy.createdAt = now
+  copy.updatedAt = now
+  const index = invoices.value.findIndex((entry) => entry.id === id)
+  invoices.value.splice(index === -1 ? 0 : index + 1, 0, copy)
+  persist()
+  return copy
+}
+
 /** Watches the given (working-copy) invoice deeply and writes it back into
  * the collection, debounced so every keystroke doesn't trigger a write. */
 function useAutosave(invoice: Invoice) {
@@ -83,5 +110,5 @@ function useAutosave(invoice: Invoice) {
 }
 
 export function useInvoiceCollection() {
-  return { invoices, save, remove, get, cloneForEditing, create, rename, useAutosave }
+  return { invoices, save, remove, get, cloneForEditing, create, rename, duplicate, setStatus, useAutosave }
 }

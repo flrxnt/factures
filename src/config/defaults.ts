@@ -57,6 +57,7 @@ export function createEmptyInvoice(): Invoice {
     id: crypto.randomUUID(),
     schemaVersion: 1,
     name: '',
+    status: 'draft',
     meta: {
       invoiceNumber: '',
       issueDate: todayIso(),

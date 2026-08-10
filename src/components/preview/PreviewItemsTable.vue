@@ -4,6 +4,7 @@ import type { LineItem } from '../../types/invoice'
 import { buildItemsColumns } from '../../config/invoiceLayout'
 import { lineTotal } from '../../lib/calculations'
 import { formatCurrency } from '../../composables/useCurrencyFormat'
+import { isEmptyHtml } from '../../lib/richText'
 
 const props = defineProps<{
   items: LineItem[]
@@ -25,10 +26,12 @@ const columns = computed(() =>
 )
 const gridTemplate = computed(() => columns.value.map((c) => `${c.width}fr`).join(' '))
 
+function descriptionHtml(item: LineItem): string {
+  return isEmptyHtml(item.description) ? '—' : item.description
+}
+
 function cellValue(item: LineItem, key: string): string {
   switch (key) {
-    case 'description':
-      return item.description || '—'
     case 'quantity':
       return String(item.quantity)
     case 'unitPrice':
@@ -60,9 +63,32 @@ function cellValue(item: LineItem, key: string): string {
       class="grid gap-2 border-b border-hairline py-2.5 text-sm text-ink-soft last:border-b-0"
       :style="{ gridTemplateColumns: gridTemplate }"
     >
-      <span v-for="col in columns" :key="col.key" :class="[col.align === 'right' ? 'text-right tabular-nums' : 'text-left text-ink', col.key === 'description' ? 'break-words' : '']">
-        {{ cellValue(item, col.key) }}
-      </span>
+      <template v-for="col in columns" :key="col.key">
+        <div v-if="col.key === 'description'" class="rich-text-cell text-left text-ink break-words" v-html="descriptionHtml(item)"></div>
+        <span v-else :class="col.align === 'right' ? 'text-right tabular-nums' : 'text-left text-ink'">
+          {{ cellValue(item, col.key) }}
+        </span>
+      </template>
     </div>
   </div>
 </template>
+
+<style>
+.rich-text-cell p {
+  margin: 0;
+}
+.rich-text-cell p + p {
+  margin-top: 0.25em;
+}
+.rich-text-cell ul,
+.rich-text-cell ol {
+  margin: 0;
+  padding-left: 1.25em;
+}
+.rich-text-cell ul {
+  list-style: disc;
+}
+.rich-text-cell ol {
+  list-style: decimal;
+}
+</style>

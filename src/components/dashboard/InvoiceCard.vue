@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { Invoice } from '../../types/invoice'
+import type { Invoice, InvoiceStatus } from '../../types/invoice'
 import { computeInvoiceTotals } from '../../lib/calculations'
 import { formatCurrency } from '../../composables/useCurrencyFormat'
 import { UNTITLED_INVOICE_NAME } from '../../config/defaults'
 import InvoicePreview from '../preview/InvoicePreview.vue'
+import StatusSelect from '../ui/StatusSelect.vue'
 
 const props = defineProps<{
   invoice: Invoice
@@ -13,7 +14,9 @@ const props = defineProps<{
 const emit = defineEmits<{
   open: []
   rename: [name: string]
+  duplicate: []
   remove: []
+  'status-change': [status: InvoiceStatus]
 }>()
 
 const totals = computed(() => computeInvoiceTotals(props.invoice))
@@ -54,6 +57,9 @@ function commitRename() {
       >
         <InvoicePreview :invoice="invoice" />
       </div>
+      <div class="absolute top-2 left-2 bg-surface/95 backdrop-blur-sm rounded-full">
+        <StatusSelect :model-value="invoice.status" @update:model-value="(status) => emit('status-change', status)" />
+      </div>
     </div>
     <div class="space-y-1 p-3">
       <div class="flex items-start justify-between gap-2">
@@ -71,6 +77,7 @@ function commitRename() {
         <p v-else class="min-w-0 flex-1 truncate text-sm font-medium text-ink">{{ invoice.name || UNTITLED_INVOICE_NAME }}</p>
         <div class="flex shrink-0 gap-1 opacity-0 transition group-hover:opacity-100">
           <button type="button" title="Renommer" class="text-muted hover:text-ink" @click="startRename">✎</button>
+          <button type="button" title="Dupliquer" class="text-muted hover:text-ink" @click.stop="$emit('duplicate')">⧉</button>
           <button type="button" title="Supprimer" class="text-muted hover:text-accent-dark" @click.stop="$emit('remove')">✕</button>
         </div>
       </div>

@@ -1,3 +1,5 @@
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+
 export type SectionKey =
   | 'logo'
   | 'sellerInfo'
@@ -88,6 +90,10 @@ export interface Invoice {
   /** User-editable document name shown on the dashboard and used (sanitized)
    * as the downloaded PDF's filename — independent of meta.invoiceNumber. */
   name: string
+  /** Manual tracking status — never inferred automatically (e.g. from due
+   * date) so it stays predictable; surfaced on the dashboard for at-a-glance
+   * follow-up. */
+  status: InvoiceStatus
   meta: InvoiceMeta
   seller: CompanyInfo
   client: ClientInfo

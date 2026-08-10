@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import BaseButton from '../ui/BaseButton.vue'
+import StatusSelect from '../ui/StatusSelect.vue'
 import { UNTITLED_INVOICE_NAME } from '../../config/defaults'
+import type { InvoiceStatus } from '../../types/invoice'
 
 const props = defineProps<{
   view: 'dashboard' | 'editor'
   invoiceName?: string
+  invoiceStatus?: InvoiceStatus
+  canUndo?: boolean
+  canRedo?: boolean
 }>()
 
 const emit = defineEmits<{
   back: []
   rename: [name: string]
+  'status-change': [status: InvoiceStatus]
+  undo: []
+  redo: []
   export: []
 }>()
 
@@ -48,7 +56,28 @@ function commitRename() {
           @blur="commitRename"
         />
       </div>
-      <div v-if="view === 'editor'" class="flex flex-wrap items-center gap-2">
+      <div v-if="view === 'editor'" class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            title="Annuler"
+            class="flex h-7 w-7 items-center justify-center rounded-full text-muted transition hover:text-ink disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-muted"
+            :disabled="!canUndo"
+            @click="emit('undo')"
+          >
+            ↶
+          </button>
+          <button
+            type="button"
+            title="Rétablir"
+            class="flex h-7 w-7 items-center justify-center rounded-full text-muted transition hover:text-ink disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-muted"
+            :disabled="!canRedo"
+            @click="emit('redo')"
+          >
+            ↷
+          </button>
+        </div>
+        <StatusSelect v-if="invoiceStatus" :model-value="invoiceStatus" @update:model-value="(status) => emit('status-change', status)" />
         <BaseButton variant="primary" @click="emit('export')">Télécharger le PDF</BaseButton>
       </div>
     </div>
