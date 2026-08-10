@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf'
 import type { Invoice, SectionKey } from '../../types/invoice'
 import { BEFORE_ITEMS_TABLE, AFTER_ITEMS_TABLE } from '../../config/sections'
-import { computeTotals } from '../calculations'
+import { computeInvoiceTotals } from '../calculations'
 import { PdfCursor } from './pdfCursor'
 import { drawHeader } from './sections/drawHeader'
 import { drawMeta } from './sections/drawMeta'
@@ -18,9 +18,7 @@ type BlockDrawer = (doc: jsPDF, invoice: Invoice, cursor: PdfCursor) => void
 /**
  * Maps each whole-block SectionKey (see config/sections.ts BLOCK_SECTION_ORDER)
  * to its jsPDF drawer. sellerInfo's drawer also renders the `logo` sub-toggle;
- * invoiceMeta's drawer also renders the `dueDate` sub-toggle. `footer` is
- * intentionally absent here — it's stamped in a final pass over every page,
- * not drawn inline in the top-down flow.
+ * invoiceMeta's drawer also renders the `dueDate` sub-toggle.
  */
 const BLOCK_DRAWERS: Partial<Record<SectionKey, BlockDrawer>> = {
   sellerInfo: drawHeader,
@@ -42,7 +40,7 @@ export function generateInvoicePdf(invoice: Invoice): jsPDF {
 
   drawItemsTable(doc, invoice, cursor)
 
-  const totals = computeTotals(invoice.items, invoice.discount, invoice.visibleSections.discount)
+  const totals = computeInvoiceTotals(invoice)
   drawTotals(doc, invoice, cursor, totals)
 
   for (const key of AFTER_ITEMS_TABLE) {
@@ -50,9 +48,7 @@ export function generateInvoicePdf(invoice: Invoice): jsPDF {
     BLOCK_DRAWERS[key]?.(doc, invoice, cursor)
   }
 
-  if (invoice.visibleSections.footer) {
-    drawFooter(doc, invoice)
-  }
+  drawFooter(doc)
 
   return doc
 }

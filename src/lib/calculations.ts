@@ -1,4 +1,4 @@
-import type { Discount, LineItem } from '../types/invoice'
+import type { Discount, Invoice, LineItem } from '../types/invoice'
 
 /** Rounds to the nearest cent to avoid floating-point artifacts (e.g. 0.1 + 0.2). */
 export function roundCurrency(n: number): number {
@@ -76,4 +76,37 @@ export function computeTotals(items: LineItem[], discount: Discount, discountEna
     discountAmount: disc,
     grandTotal: grandTotal(sub, disc, tax),
   }
+}
+
+/** True as soon as any line has a price — the trigger for locking totals to
+ * the line items instead of a directly-entered subtotal (see Invoice.manualSubtotal). */
+export function hasLineAmounts(items: LineItem[]): boolean {
+  return items.some((item) => item.unitPrice > 0)
+}
+
+/**
+ * Single source of truth for "which totals mode is active", used identically
+ * by the on-screen preview, the PDF generator, and history entries so they
+ * can never disagree: line items with an amount always win; a directly-entered
+ * subtotal only applies when no line has a price, using the invoice's default
+ * tax rate as the (single) rate for that direct entry.
+ */
+export function computeInvoiceTotals(invoice: Invoice): InvoiceTotals {
+  const discountEnabled = invoice.visibleSections.discount
+
+  if (!hasLineAmounts(invoice.items) && invoice.manualSubtotal !== null) {
+    const sub = roundCurrency(invoice.manualSubtotal)
+    const rate = invoice.meta.defaultTaxRatePercent
+    const tax = roundCurrency((sub * rate) / 100)
+    const disc = discountAmount(sub, invoice.discount, discountEnabled)
+    return {
+      subtotal: sub,
+      taxGroups: rate > 0 ? [{ rate, base: sub, amount: tax }] : [],
+      taxTotal: tax,
+      discountAmount: disc,
+      grandTotal: grandTotal(sub, disc, tax),
+    }
+  }
+
+  return computeTotals(invoice.items, invoice.discount, discountEnabled)
 }

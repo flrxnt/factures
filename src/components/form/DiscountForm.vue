@@ -14,9 +14,9 @@ const TYPE_OPTIONS = [
 </script>
 
 <template>
-  <fieldset class="space-y-3">
-    <legend class="text-base font-semibold text-slate-900">Remise</legend>
-    <div class="grid grid-cols-2 gap-3">
+  <fieldset class="space-y-4">
+    <legend class="font-display text-lg text-ink">Remise</legend>
+    <div class="grid grid-cols-2 gap-4">
       <BaseSelect
         :model-value="discount.type"
         label="Type"

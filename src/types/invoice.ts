@@ -4,11 +4,12 @@ export type SectionKey =
   | 'clientInfo'
   | 'invoiceMeta'
   | 'dueDate'
+  | 'quantityColumn'
+  | 'unitPriceColumn'
   | 'taxColumn'
   | 'discount'
   | 'notes'
   | 'paymentDetails'
-  | 'footer'
   | 'signature'
 
 export interface CompanyInfo {
@@ -64,6 +65,8 @@ export interface InvoiceMeta {
   dueDate: string
   currency: string
   locale: string
+  /** Applied to newly added line items and to "apply to all lines" bulk edits. */
+  defaultTaxRatePercent: number
 }
 
 export interface Invoice {
@@ -79,6 +82,12 @@ export interface Invoice {
   payment: PaymentDetails
   signatureLabel: string
   visibleSections: Record<SectionKey, boolean>
+  /**
+   * Directly-entered subtotal, used only when no line item has an amount
+   * (see lib/calculations.ts hasLineAmounts). As soon as any line has a
+   * price, totals are computed from the lines instead and this is ignored.
+   */
+  manualSubtotal: number | null
   createdAt: string
   updatedAt: string
 }

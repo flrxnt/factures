@@ -13,10 +13,10 @@ export function drawSignature(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): 
   const left = right - BOX_WIDTH
   const lineY = cursor.y + BOX_HEIGHT
 
-  doc.setDrawColor(...PDF_THEME.colors.border)
+  doc.setDrawColor(...PDF_THEME.colors.hairline)
   doc.line(left, lineY, right, lineY)
 
-  doc.setFont(PDF_THEME.font.family, 'normal')
+  doc.setFont(PDF_THEME.font.body, 'normal')
   doc.setFontSize(PDF_THEME.font.sizeSmall)
   doc.setTextColor(...PDF_THEME.colors.muted)
   doc.text(invoice.signatureLabel || 'Signature', left + BOX_WIDTH / 2, lineY + 4, { align: 'center' })

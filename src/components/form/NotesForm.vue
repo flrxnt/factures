@@ -8,8 +8,8 @@ defineProps<{
 </script>
 
 <template>
-  <fieldset class="space-y-3">
-    <legend class="text-base font-semibold text-slate-900">Notes et conditions</legend>
+  <fieldset class="space-y-4">
+    <legend class="font-display text-lg text-ink">Notes et conditions</legend>
     <BaseTextarea v-model="invoice.notes" label="Notes" placeholder="Merci pour votre confiance." />
     <BaseTextarea
       v-model="invoice.termsAndConditions"

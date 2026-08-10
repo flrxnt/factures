@@ -8,10 +8,14 @@ import { formatCurrency } from '../../../composables/useCurrencyFormat'
 import { PDF_THEME } from '../pdfTheme'
 
 export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): void {
-  const columns = buildItemsColumns(invoice.visibleSections.taxColumn)
+  const columns = buildItemsColumns({
+    showQuantity: invoice.visibleSections.quantityColumn,
+    showUnitPrice: invoice.visibleSections.unitPriceColumn,
+    showTax: invoice.visibleSections.taxColumn,
+  })
   const { currency, locale } = invoice.meta
 
-  const head = [columns.map((c) => c.labelFr)]
+  const head = [columns.map((c) => c.labelFr.toUpperCase())]
   const body = invoice.items.map((item) =>
     columns.map((col) => {
       switch (col.key) {
@@ -42,21 +46,26 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
     startY: cursor.y,
     margin: { left: PDF_PAGE.marginX, right: PDF_PAGE.marginX, bottom: PDF_PAGE.marginBottom },
     styles: {
-      font: PDF_THEME.font.family,
+      font: PDF_THEME.font.body,
       fontSize: PDF_THEME.font.sizeSmall,
-      textColor: PDF_THEME.colors.body,
-      lineColor: PDF_THEME.colors.border,
-      lineWidth: 0.1,
-      cellPadding: 2.5,
+      textColor: PDF_THEME.colors.inkSoft,
+      lineColor: PDF_THEME.colors.hairline,
+      lineWidth: 0.15,
+      cellPadding: { top: 2.5, bottom: 2.5, left: 0, right: 0 },
     },
     headStyles: {
-      fillColor: PDF_THEME.colors.tableHead,
-      textColor: PDF_THEME.colors.heading,
+      fillColor: false,
+      textColor: PDF_THEME.colors.muted,
       fontStyle: 'bold',
       fontSize: PDF_THEME.font.sizeSectionLabel,
+      lineWidth: { bottom: 0.3 },
+      lineColor: PDF_THEME.colors.hairlineStrong,
+    },
+    bodyStyles: {
+      lineWidth: { bottom: 0.15 },
     },
     columnStyles,
-    theme: 'grid',
+    theme: 'plain',
   })
 
   const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY

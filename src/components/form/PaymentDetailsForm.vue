@@ -9,13 +9,13 @@ defineProps<{
 </script>
 
 <template>
-  <fieldset class="space-y-3">
-    <legend class="text-base font-semibold text-slate-900">Coordonnées bancaires</legend>
-    <div class="grid grid-cols-2 gap-3">
+  <fieldset class="space-y-4">
+    <legend class="font-display text-lg text-ink">Coordonnées bancaires</legend>
+    <div class="grid grid-cols-2 gap-4">
       <BaseInput v-model="payment.bankName" label="Banque" />
-      <BaseInput v-model="payment.accountHolder" label="Titulaire du compte" />
+      <BaseInput v-model="payment.accountHolder" label="Titulaire" />
     </div>
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-4">
       <BaseInput v-model="payment.iban" label="IBAN / N° de compte" />
       <BaseInput v-model="payment.bic" label="BIC / SWIFT" />
     </div>

@@ -7,30 +7,45 @@ export interface ItemsColumnDef {
   align: 'left' | 'right'
 }
 
-/** Columns always present, in order. The `taxRate` column is inserted
- * conditionally by consumers based on visibleSections.taxColumn. */
-export const BASE_ITEMS_COLUMNS: ItemsColumnDef[] = [
-  { key: 'description', labelFr: 'Description', width: 0.42, align: 'left' },
-  { key: 'quantity', labelFr: 'Qté', width: 0.12, align: 'right' },
-  { key: 'unitPrice', labelFr: 'Prix unitaire', width: 0.18, align: 'right' },
-  { key: 'lineTotal', labelFr: 'Total', width: 0.18, align: 'right' },
-]
+const DESCRIPTION_COLUMN: ItemsColumnDef = { key: 'description', labelFr: 'Description', width: 0.42, align: 'left' }
+const QUANTITY_COLUMN: ItemsColumnDef = { key: 'quantity', labelFr: 'Qté', width: 0.12, align: 'right' }
+const UNIT_PRICE_COLUMN: ItemsColumnDef = { key: 'unitPrice', labelFr: 'Prix unitaire', width: 0.18, align: 'right' }
+const TAX_RATE_COLUMN: ItemsColumnDef = { key: 'taxRate', labelFr: 'TVA', width: 0.1, align: 'right' }
+const LINE_TOTAL_COLUMN: ItemsColumnDef = { key: 'lineTotal', labelFr: 'Total', width: 0.18, align: 'right' }
 
-export const TAX_RATE_COLUMN: ItemsColumnDef = {
-  key: 'taxRate',
-  labelFr: 'TVA',
-  width: 0.1,
-  align: 'right',
+export interface ItemsColumnVisibility {
+  showQuantity: boolean
+  showUnitPrice: boolean
+  showTax: boolean
 }
 
-/** Builds the active column list (with widths re-normalized to sum to 1),
- * inserted before the lineTotal column so tax stays a preview-of-total step. */
-export function buildItemsColumns(showTaxColumn: boolean): ItemsColumnDef[] {
-  const columns = showTaxColumn
-    ? [...BASE_ITEMS_COLUMNS.slice(0, 3), TAX_RATE_COLUMN, BASE_ITEMS_COLUMNS[3]]
-    : [...BASE_ITEMS_COLUMNS]
+/** Builds the active column list (with widths re-normalized to sum to 1).
+ * `description` and `lineTotal` are always present; the rest are optional,
+ * each independently toggleable (visibleSections.quantityColumn/unitPriceColumn/taxColumn). */
+export function buildItemsColumns({ showQuantity, showUnitPrice, showTax }: ItemsColumnVisibility): ItemsColumnDef[] {
+  const columns = [
+    DESCRIPTION_COLUMN,
+    ...(showQuantity ? [QUANTITY_COLUMN] : []),
+    ...(showUnitPrice ? [UNIT_PRICE_COLUMN] : []),
+    ...(showTax ? [TAX_RATE_COLUMN] : []),
+    LINE_TOTAL_COLUMN,
+  ]
   const totalWidth = columns.reduce((sum, c) => sum + c.width, 0)
   return columns.map((c) => ({ ...c, width: c.width / totalWidth }))
+}
+
+/** Fixed-width CSS grid-template-columns for the editable line-items FORM row
+ * (as opposed to the fluid `fr`-based preview/PDF table): a `1fr` description
+ * column plus a fixed-width column per visible toggle, and a remove-button
+ * column. Shared by LineItemsForm.vue's header row and LineItemRow.vue so
+ * they always stay aligned. */
+export function buildFormRowGridTemplate({ showQuantity, showUnitPrice, showTax }: ItemsColumnVisibility): string {
+  const columns = ['1fr']
+  if (showQuantity) columns.push('4.5rem')
+  if (showUnitPrice) columns.push('7rem')
+  if (showTax) columns.push('4.5rem')
+  columns.push('7rem', '2rem')
+  return columns.join(' ')
 }
 
 /** PDF page geometry (mm, A4). */

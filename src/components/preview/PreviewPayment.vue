@@ -7,8 +7,8 @@ defineProps<{
 </script>
 
 <template>
-  <div class="border-t border-slate-100 pt-4 text-sm text-slate-600">
-    <p class="mb-1 text-xs font-medium tracking-wide text-slate-500 uppercase">Coordonnées bancaires</p>
+  <div class="border-t border-hairline pt-6 text-sm text-ink-soft">
+    <p class="mb-1 text-xs font-medium tracking-wide text-muted uppercase">Coordonnées bancaires</p>
     <p v-if="payment.bankName">Banque : {{ payment.bankName }}</p>
     <p v-if="payment.accountHolder">Titulaire : {{ payment.accountHolder }}</p>
     <p v-if="payment.iban">IBAN : {{ payment.iban }}</p>

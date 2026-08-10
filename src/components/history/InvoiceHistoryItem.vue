@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Invoice } from '../../types/invoice'
-import { computeTotals } from '../../lib/calculations'
+import { computeInvoiceTotals } from '../../lib/calculations'
 import { formatCurrency } from '../../composables/useCurrencyFormat'
 import BaseButton from '../ui/BaseButton.vue'
 
@@ -13,16 +13,16 @@ defineEmits<{
   remove: []
 }>()
 
-const totals = computeTotals(props.invoice.items, props.invoice.discount, props.invoice.visibleSections.discount)
+const totals = computeInvoiceTotals(props.invoice)
 </script>
 
 <template>
-  <li class="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2.5">
+  <li class="flex items-center justify-between gap-3 rounded-md border border-hairline px-3 py-2.5">
     <div class="min-w-0">
-      <p class="truncate text-sm font-semibold text-slate-900">
+      <p class="truncate text-sm font-medium text-ink">
         {{ invoice.meta.invoiceNumber || 'Sans numéro' }} — {{ invoice.client.name || 'Client sans nom' }}
       </p>
-      <p class="text-xs text-slate-500">
+      <p class="text-xs text-muted">
         {{ invoice.meta.issueDate }} · {{ formatCurrency(totals.grandTotal, invoice.meta.currency, invoice.meta.locale) }}
       </p>
     </div>

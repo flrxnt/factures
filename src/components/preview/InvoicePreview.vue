@@ -9,7 +9,6 @@ import PreviewTotals from './PreviewTotals.vue'
 import PreviewNotes from './PreviewNotes.vue'
 import PreviewPayment from './PreviewPayment.vue'
 import PreviewSignature from './PreviewSignature.vue'
-import PreviewFooter from './PreviewFooter.vue'
 
 const props = defineProps<{
   invoice: Invoice
@@ -19,7 +18,7 @@ const { totals } = useInvoiceTotals(props.invoice)
 </script>
 
 <template>
-  <div id="invoice-preview" class="mx-auto w-full max-w-[794px] space-y-6 bg-white p-8 text-slate-900 shadow-sm ring-1 ring-slate-200 sm:p-10">
+  <div id="invoice-preview" class="mx-auto w-full max-w-[794px] space-y-8 border border-hairline bg-surface p-8 text-ink shadow-[0_1px_2px_rgba(28,26,20,0.04)] sm:p-12">
     <PreviewHeader v-if="invoice.visibleSections.sellerInfo" :seller="invoice.seller" :show-logo="invoice.visibleSections.logo" />
 
     <PreviewMeta v-if="invoice.visibleSections.invoiceMeta" :meta="invoice.meta" :show-due-date="invoice.visibleSections.dueDate" />
@@ -28,6 +27,8 @@ const { totals } = useInvoiceTotals(props.invoice)
 
     <PreviewItemsTable
       :items="invoice.items"
+      :show-quantity-column="invoice.visibleSections.quantityColumn"
+      :show-unit-price-column="invoice.visibleSections.unitPriceColumn"
       :show-tax-column="invoice.visibleSections.taxColumn"
       :currency="invoice.meta.currency"
       :locale="invoice.meta.locale"
@@ -45,7 +46,5 @@ const { totals } = useInvoiceTotals(props.invoice)
     <PreviewPayment v-if="invoice.visibleSections.paymentDetails" :payment="invoice.payment" />
 
     <PreviewSignature v-if="invoice.visibleSections.signature" :signature-label="invoice.signatureLabel" />
-
-    <PreviewFooter v-if="invoice.visibleSections.footer" :seller-name="invoice.seller.name" />
   </div>
 </template>

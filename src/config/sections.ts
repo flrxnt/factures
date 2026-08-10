@@ -15,12 +15,13 @@ export const SECTION_ORDER: SectionDescriptor[] = [
   { key: 'clientInfo', labelFr: 'Coordonnées du client' },
   { key: 'invoiceMeta', labelFr: 'Informations de facture' },
   { key: 'dueDate', labelFr: "Date d'échéance" },
-  { key: 'taxColumn', labelFr: 'Colonne taxe (tableau)' },
+  { key: 'quantityColumn', labelFr: 'Colonne quantité' },
+  { key: 'unitPriceColumn', labelFr: 'Colonne prix unitaire' },
+  { key: 'taxColumn', labelFr: 'Colonne taxe' },
   { key: 'discount', labelFr: 'Remise' },
   { key: 'notes', labelFr: 'Notes et conditions' },
   { key: 'paymentDetails', labelFr: 'Coordonnées bancaires' },
   { key: 'signature', labelFr: 'Signature' },
-  { key: 'footer', labelFr: 'Pied de page' },
 ]
 
 /**
@@ -28,13 +29,13 @@ export const SECTION_ORDER: SectionDescriptor[] = [
  * whole jsPDF drawer function (an all-or-nothing block), in rendering order.
  * generateInvoicePdf.ts splits this at the items table (everything up to and
  * including `clientInfo` is drawn before it, the rest after) — see
- * BEFORE_ITEMS_TABLE / AFTER_ITEMS_TABLE below. `footer` is excluded: it's
- * stamped in a final pass over every page, not drawn inline in this flow.
+ * BEFORE_ITEMS_TABLE / AFTER_ITEMS_TABLE below.
  *
- * The remaining keys (logo, dueDate, taxColumn, discount) are sub-toggles
- * consulted directly by the block that contains them (sellerInfo reads `logo`,
- * invoiceMeta reads `dueDate`, the items table reads `taxColumn`, the totals
- * block reads `discount`) rather than being their own block.
+ * The remaining keys (logo, dueDate, quantityColumn, unitPriceColumn,
+ * taxColumn, discount) are sub-toggles consulted directly by the block that
+ * contains them (sellerInfo reads `logo`, invoiceMeta reads `dueDate`, the
+ * items table reads the column toggles, the totals block reads `discount`)
+ * rather than being their own block.
  */
 export const BLOCK_SECTION_ORDER: SectionKey[] = ['sellerInfo', 'invoiceMeta', 'clientInfo', 'notes', 'paymentDetails', 'signature']
 

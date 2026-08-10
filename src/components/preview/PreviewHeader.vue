@@ -14,10 +14,10 @@ defineProps<{
         v-if="showLogo && seller.logoDataUrl"
         :src="seller.logoDataUrl"
         alt="Logo"
-        class="h-16 w-16 shrink-0 rounded object-contain ring-1 ring-slate-100"
+        class="h-14 w-14 shrink-0 rounded object-contain ring-1 ring-hairline"
       />
-      <div class="text-sm text-slate-600">
-        <p class="text-base font-semibold text-slate-900">{{ seller.name || 'Nom de l\'entreprise' }}</p>
+      <div class="text-sm text-ink-soft">
+        <p class="font-display text-lg text-ink">{{ seller.name || "Nom de l'entreprise" }}</p>
         <p v-if="seller.addressLine1">{{ seller.addressLine1 }}</p>
         <p v-if="seller.addressLine2">{{ seller.addressLine2 }}</p>
         <p v-if="seller.postalCode || seller.city">{{ seller.postalCode }} {{ seller.city }}</p>
@@ -27,8 +27,6 @@ defineProps<{
         <p v-if="seller.phone">{{ seller.phone }}</p>
       </div>
     </div>
-    <div class="text-right">
-      <p class="text-2xl font-bold tracking-tight text-indigo-700">FACTURE</p>
-    </div>
+    <p class="font-display text-4xl text-ink italic">Facture</p>
   </div>
 </template>

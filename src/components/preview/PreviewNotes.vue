@@ -6,8 +6,8 @@ defineProps<{
 </script>
 
 <template>
-  <div v-if="notes || termsAndConditions" class="space-y-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
+  <div v-if="notes || termsAndConditions" class="space-y-2 border-t border-hairline pt-6 text-sm text-ink-soft">
     <p v-if="notes" class="whitespace-pre-wrap">{{ notes }}</p>
-    <p v-if="termsAndConditions" class="whitespace-pre-wrap text-xs text-slate-500">{{ termsAndConditions }}</p>
+    <p v-if="termsAndConditions" class="whitespace-pre-wrap text-xs text-muted">{{ termsAndConditions }}</p>
   </div>
 </template>

@@ -15,18 +15,18 @@ function formatDate(iso: string, locale: string): string {
 </script>
 
 <template>
-  <div class="grid grid-cols-3 gap-4 rounded-md bg-slate-50 px-4 py-3 text-sm sm:w-fit sm:min-w-[22rem]">
+  <div class="flex flex-wrap gap-x-10 gap-y-3 border-y border-hairline py-4 text-sm">
     <div>
-      <p class="text-xs font-medium tracking-wide text-slate-500 uppercase">N° facture</p>
-      <p class="font-semibold text-slate-900">{{ meta.invoiceNumber || '—' }}</p>
+      <p class="text-xs font-medium tracking-wide text-muted uppercase">N° facture</p>
+      <p class="mt-0.5 font-medium text-ink">{{ meta.invoiceNumber || '—' }}</p>
     </div>
     <div>
-      <p class="text-xs font-medium tracking-wide text-slate-500 uppercase">Émise le</p>
-      <p class="font-semibold text-slate-900">{{ formatDate(meta.issueDate, meta.locale) }}</p>
+      <p class="text-xs font-medium tracking-wide text-muted uppercase">Émise le</p>
+      <p class="mt-0.5 font-medium text-ink">{{ formatDate(meta.issueDate, meta.locale) }}</p>
     </div>
     <div v-if="showDueDate">
-      <p class="text-xs font-medium tracking-wide text-slate-500 uppercase">Échéance</p>
-      <p class="font-semibold text-slate-900">{{ formatDate(meta.dueDate, meta.locale) }}</p>
+      <p class="text-xs font-medium tracking-wide text-muted uppercase">Échéance</p>
+      <p class="mt-0.5 font-medium text-ink">{{ formatDate(meta.dueDate, meta.locale) }}</p>
     </div>
   </div>
 </template>

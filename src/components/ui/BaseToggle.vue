@@ -10,13 +10,16 @@ defineEmits<{
 </script>
 
 <template>
-  <label class="flex cursor-pointer items-center gap-2 select-none">
+  <label
+    class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium tracking-wide transition select-none"
+    :class="modelValue ? 'border-ink bg-ink text-paper' : 'border-hairline-strong bg-transparent text-ink-soft hover:border-ink/40'"
+  >
     <input
       type="checkbox"
       :checked="modelValue"
-      class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+      class="sr-only"
       @change="$emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
     />
-    <span class="text-sm text-slate-700">{{ label }}</span>
+    <span>{{ label }}</span>
   </label>
 </template>

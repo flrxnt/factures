@@ -30,19 +30,24 @@ export function drawTotals(doc: jsPDF, invoice: Invoice, cursor: PdfCursor, tota
 
   for (const [label, value, isTotal] of rows) {
     if (isTotal) {
-      y += 1.5
-      doc.setDrawColor(...PDF_THEME.colors.border)
-      doc.line(labelX, y - 3.5, right, y - 3.5)
-      doc.setFont(PDF_THEME.font.family, 'bold')
-      doc.setFontSize(PDF_THEME.font.sizeTotal - 3)
-      doc.setTextColor(...PDF_THEME.colors.heading)
+      y += 2
+      doc.setDrawColor(...PDF_THEME.colors.hairlineStrong)
+      doc.setLineWidth(0.3)
+      doc.line(labelX, y - 4, right, y - 4)
+      doc.setLineWidth(0.1)
+      doc.setFont(PDF_THEME.font.display, 'bold')
+      doc.setFontSize(PDF_THEME.font.sizeTotal)
+      doc.setTextColor(...PDF_THEME.colors.ink)
+      doc.text(label, labelX, y)
+      doc.setTextColor(...PDF_THEME.colors.accent)
+      doc.text(value, right, y, { align: 'right' })
     } else {
-      doc.setFont(PDF_THEME.font.family, 'normal')
+      doc.setFont(PDF_THEME.font.body, 'normal')
       doc.setFontSize(PDF_THEME.font.sizeBody)
-      doc.setTextColor(...PDF_THEME.colors.body)
+      doc.setTextColor(...PDF_THEME.colors.inkSoft)
+      doc.text(label, labelX, y)
+      doc.text(value, right, y, { align: 'right' })
     }
-    doc.text(label, labelX, y)
-    doc.text(value, right, y, { align: 'right' })
     y += ROW_HEIGHT
   }
 

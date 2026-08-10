@@ -45,26 +45,26 @@ function clearLogo() {
 
 <template>
   <div>
-    <span class="mb-1 block text-sm font-medium text-slate-700">Logo</span>
+    <span class="mb-1.5 block text-xs font-medium tracking-wide text-muted uppercase">Logo</span>
     <div
-      class="flex items-center gap-3 rounded-md border-2 border-dashed px-3 py-3 text-sm transition"
-      :class="isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300'"
+      class="flex items-center gap-3 rounded-md border border-dashed px-3 py-3 text-sm transition"
+      :class="isDragging ? 'border-accent bg-accent-soft/40' : 'border-hairline-strong'"
       @dragover.prevent="isDragging = true"
       @dragleave.prevent="isDragging = false"
       @drop.prevent="onDrop"
     >
-      <img v-if="props.modelValue" :src="props.modelValue" alt="Logo" class="h-12 w-12 rounded object-contain ring-1 ring-slate-200" />
+      <img v-if="props.modelValue" :src="props.modelValue" alt="Logo" class="h-12 w-12 rounded object-contain ring-1 ring-hairline" />
       <div class="flex-1">
-        <label class="cursor-pointer text-indigo-600 hover:text-indigo-500">
+        <label class="cursor-pointer text-accent hover:text-accent-dark">
           <span>Choisir un fichier</span>
           <input type="file" accept="image/*" class="hidden" @change="onInputChange" />
         </label>
-        <span class="text-slate-500"> ou glisser-déposer une image</span>
+        <span class="text-muted"> ou glisser-déposer une image</span>
       </div>
-      <button v-if="props.modelValue" type="button" class="text-sm text-slate-500 hover:text-red-600" @click="clearLogo">
+      <button v-if="props.modelValue" type="button" class="text-sm text-muted hover:text-accent-dark" @click="clearLogo">
         Retirer
       </button>
     </div>
-    <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
+    <p v-if="error" class="mt-1 text-sm text-accent-dark">{{ error }}</p>
   </div>
 </template>

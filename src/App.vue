@@ -38,7 +38,7 @@ function handleLoadFromHistory(id: string) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-100">
+  <div class="min-h-screen bg-paper font-sans text-ink">
     <AppHeader @new="handleNew" @history="historyOpen = true" @export="exportPdf(invoice)" />
 
     <TwoPaneLayout>

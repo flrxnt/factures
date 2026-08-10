@@ -6,6 +6,7 @@ import SellerForm from './SellerForm.vue'
 import ClientForm from './ClientForm.vue'
 import InvoiceMetaForm from './InvoiceMetaForm.vue'
 import LineItemsForm from './LineItemsForm.vue'
+import TotalsForm from './TotalsForm.vue'
 import DiscountForm from './DiscountForm.vue'
 import NotesForm from './NotesForm.vue'
 import PaymentDetailsForm from './PaymentDetailsForm.vue'
@@ -16,7 +17,7 @@ const props = defineProps<{
 }>()
 
 function addItem() {
-  props.invoice.items.push(createEmptyLineItem())
+  props.invoice.items.push(createEmptyLineItem(props.invoice.meta.defaultTaxRatePercent))
 }
 
 function removeItem(id: string) {
@@ -26,31 +27,51 @@ function removeItem(id: string) {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <SectionToggles :invoice="invoice" />
+  <div class="divide-y divide-hairline">
+    <div class="pb-8">
+      <SectionToggles :invoice="invoice" />
+    </div>
 
-    <InvoiceMetaForm :meta="invoice.meta" :show-due-date="invoice.visibleSections.dueDate" />
+    <div class="py-8">
+      <InvoiceMetaForm :invoice="invoice" :show-due-date="invoice.visibleSections.dueDate" :show-tax-rate="invoice.visibleSections.taxColumn" />
+    </div>
 
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+    <div v-if="invoice.visibleSections.sellerInfo || invoice.visibleSections.clientInfo" class="space-y-8 py-8">
       <SellerForm v-if="invoice.visibleSections.sellerInfo" :seller="invoice.seller" :show-logo="invoice.visibleSections.logo" />
       <ClientForm v-if="invoice.visibleSections.clientInfo" :client="invoice.client" />
     </div>
 
-    <LineItemsForm
-      :items="invoice.items"
-      :show-tax-column="invoice.visibleSections.taxColumn"
-      :currency="invoice.meta.currency"
-      :locale="invoice.meta.locale"
-      @add="addItem"
-      @remove="removeItem"
-    />
+    <div class="py-8">
+      <LineItemsForm
+        :items="invoice.items"
+        :show-quantity-column="invoice.visibleSections.quantityColumn"
+        :show-unit-price-column="invoice.visibleSections.unitPriceColumn"
+        :show-tax-column="invoice.visibleSections.taxColumn"
+        :currency="invoice.meta.currency"
+        :locale="invoice.meta.locale"
+        @add="addItem"
+        @remove="removeItem"
+      />
+    </div>
 
-    <DiscountForm v-if="invoice.visibleSections.discount" :discount="invoice.discount" />
+    <div class="py-8">
+      <TotalsForm :invoice="invoice" />
+    </div>
 
-    <NotesForm v-if="invoice.visibleSections.notes" :invoice="invoice" />
+    <div v-if="invoice.visibleSections.discount" class="py-8">
+      <DiscountForm :discount="invoice.discount" />
+    </div>
 
-    <PaymentDetailsForm v-if="invoice.visibleSections.paymentDetails" :payment="invoice.payment" />
+    <div v-if="invoice.visibleSections.notes" class="py-8">
+      <NotesForm :invoice="invoice" />
+    </div>
 
-    <SignatureForm v-if="invoice.visibleSections.signature" :invoice="invoice" />
+    <div v-if="invoice.visibleSections.paymentDetails" class="py-8">
+      <PaymentDetailsForm :payment="invoice.payment" />
+    </div>
+
+    <div v-if="invoice.visibleSections.signature" class="pt-8">
+      <SignatureForm :invoice="invoice" />
+    </div>
   </div>
 </template>

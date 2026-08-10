@@ -18,18 +18,18 @@ export function drawPayment(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): vo
   const left = PDF_PAGE.marginX
   cursor.ensureSpace(6 + lines.length * 4.5)
 
-  doc.setDrawColor(...PDF_THEME.colors.border)
+  doc.setDrawColor(...PDF_THEME.colors.hairline)
   doc.line(left, cursor.y, left + PDF_CONTENT_WIDTH, cursor.y)
   cursor.advance(6)
 
-  doc.setFont(PDF_THEME.font.family, 'normal')
+  doc.setFont(PDF_THEME.font.body, 'normal')
   doc.setFontSize(PDF_THEME.font.sizeSectionLabel)
   doc.setTextColor(...PDF_THEME.colors.muted)
   doc.text('COORDONNÉES BANCAIRES', left, cursor.y)
   cursor.advance(5)
 
   doc.setFontSize(PDF_THEME.font.sizeBody)
-  doc.setTextColor(...PDF_THEME.colors.body)
+  doc.setTextColor(...PDF_THEME.colors.inkSoft)
   for (const line of lines) {
     const wrapped = doc.splitTextToSize(line, PDF_CONTENT_WIDTH)
     doc.text(wrapped, left, cursor.y)

@@ -9,19 +9,19 @@ export function drawClient(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): voi
   const left = PDF_PAGE.marginX
   const startY = cursor.y
 
-  doc.setFont(PDF_THEME.font.family, 'normal')
+  doc.setFont(PDF_THEME.font.body, 'normal')
   doc.setFontSize(PDF_THEME.font.sizeSectionLabel)
   doc.setTextColor(...PDF_THEME.colors.muted)
   doc.text('FACTURÉ À', left, startY)
 
-  doc.setFont(PDF_THEME.font.family, 'bold')
-  doc.setFontSize(PDF_THEME.font.sizeBody + 1)
-  doc.setTextColor(...PDF_THEME.colors.heading)
-  doc.text(client.name || 'Nom du client', left, startY + 5)
+  doc.setFont(PDF_THEME.font.display, 'bold')
+  doc.setFontSize(PDF_THEME.font.sizeBody + 2)
+  doc.setTextColor(...PDF_THEME.colors.ink)
+  doc.text(client.name || 'Nom du client', left, startY + 6)
 
-  doc.setFont(PDF_THEME.font.family, 'normal')
+  doc.setFont(PDF_THEME.font.body, 'normal')
   doc.setFontSize(PDF_THEME.font.sizeSmall)
-  doc.setTextColor(...PDF_THEME.colors.body)
+  doc.setTextColor(...PDF_THEME.colors.inkSoft)
 
   const lines = [
     client.addressLine1,
@@ -33,7 +33,7 @@ export function drawClient(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): voi
     client.phone,
   ].filter(Boolean) as string[]
 
-  let lineY = startY + 10
+  let lineY = startY + 11.5
   for (const line of lines) {
     doc.text(line, left, lineY)
     lineY += 4

@@ -1,7 +1,8 @@
-import type { Invoice, SectionKey } from '../types/invoice'
+import type { Invoice, LineItem, SectionKey } from '../types/invoice'
 
 export const DEFAULT_CURRENCY = 'XOF'
 export const DEFAULT_LOCALE = 'fr-FR'
+export const DEFAULT_TAX_RATE_PERCENT = 18
 export const MAX_HISTORY_ENTRIES = 50
 
 export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
@@ -10,11 +11,12 @@ export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
   clientInfo: true,
   invoiceMeta: true,
   dueDate: true,
+  quantityColumn: true,
+  unitPriceColumn: true,
   taxColumn: true,
   discount: false,
   notes: true,
   paymentDetails: true,
-  footer: true,
   signature: false,
 }
 
@@ -39,6 +41,7 @@ export function createEmptyInvoice(): Invoice {
       dueDate: dueDateIso(30),
       currency: DEFAULT_CURRENCY,
       locale: DEFAULT_LOCALE,
+      defaultTaxRatePercent: DEFAULT_TAX_RATE_PERCENT,
     },
     seller: {
       name: '',
@@ -79,17 +82,18 @@ export function createEmptyInvoice(): Invoice {
     },
     signatureLabel: '',
     visibleSections: { ...DEFAULT_VISIBLE_SECTIONS },
+    manualSubtotal: null,
     createdAt: now,
     updatedAt: now,
   }
 }
 
-export function createEmptyLineItem() {
+export function createEmptyLineItem(taxRatePercent: number = DEFAULT_TAX_RATE_PERCENT): LineItem {
   return {
     id: crypto.randomUUID(),
     description: '',
     quantity: 1,
     unitPrice: 0,
-    taxRatePercent: 18,
+    taxRatePercent,
   }
 }
