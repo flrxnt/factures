@@ -95,6 +95,52 @@ function duplicate(id: string): Invoice | null {
   return copy
 }
 
+export interface ImportResult {
+  imported: number
+  skipped: number
+}
+
+/** Minimal structural check — not a full schema validation, just enough to
+ * reject obviously-wrong files (wrong app, corrupted export, hand-edited
+ * JSON missing required nesting) without crashing on `.id`/`.client` access. */
+function isValidInvoiceShape(value: unknown): value is Invoice {
+  if (!value || typeof value !== 'object') return false
+  const v = value as Record<string, unknown>
+  return typeof v.id === 'string' && typeof v.client === 'object' && typeof v.seller === 'object' && typeof v.meta === 'object'
+}
+
+/**
+ * Counterpart to exportInvoicesAsJson (lib/exportData.ts) — restores a
+ * previously-exported `{ exportedAt, invoices }` backup. Existing invoices
+ * with a matching id are overwritten (last-write-wins, using the imported
+ * file's own updatedAt); everything else is merged in. The merged set is
+ * sorted by updatedAt (most recent first) *before* the MAX_INVOICES cap is
+ * applied, so a bulk import can't silently push out invoices that are
+ * actually more recent than some of the incoming ones.
+ */
+function importInvoices(payload: unknown): ImportResult {
+  const incoming = payload && typeof payload === 'object' ? (payload as Record<string, unknown>).invoices : undefined
+  if (!Array.isArray(incoming)) return { imported: 0, skipped: 0 }
+
+  const byId = new Map(invoices.value.map((entry) => [entry.id, entry]))
+  let imported = 0
+  let skipped = 0
+
+  for (const entry of incoming) {
+    if (!isValidInvoiceShape(entry)) {
+      skipped += 1
+      continue
+    }
+    byId.set(entry.id, entry)
+    imported += 1
+  }
+
+  invoices.value = [...byId.values()].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)).slice(0, MAX_INVOICES)
+  persist()
+
+  return { imported, skipped }
+}
+
 /** Watches the given (working-copy) invoice deeply and writes it back into
  * the collection, debounced so every keystroke doesn't trigger a write. */
 function useAutosave(invoice: Invoice) {
@@ -110,5 +156,5 @@ function useAutosave(invoice: Invoice) {
 }
 
 export function useInvoiceCollection() {
-  return { invoices, save, remove, get, cloneForEditing, create, rename, duplicate, setStatus, useAutosave }
+  return { invoices, save, remove, get, cloneForEditing, create, rename, duplicate, setStatus, importInvoices, useAutosave }
 }

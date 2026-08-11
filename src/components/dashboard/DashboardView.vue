@@ -16,7 +16,33 @@ const emit = defineEmits<{
   open: [id: string]
 }>()
 
-const { invoices, remove, rename, duplicate, setStatus } = useInvoiceCollection()
+const { invoices, remove, rename, duplicate, setStatus, importInvoices } = useInvoiceCollection()
+
+const importInputRef = ref<HTMLInputElement | null>(null)
+
+function triggerImport() {
+  importInputRef.value?.click()
+}
+
+async function handleImportFile(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // allow re-selecting the same file next time
+  if (!file) return
+
+  try {
+    const payload = JSON.parse(await file.text())
+    const { imported, skipped } = importInvoices(payload)
+    if (imported === 0 && skipped === 0) {
+      alert("Fichier invalide : aucune facture trouvée dans ce fichier JSON.")
+    } else {
+      const skippedNote = skipped > 0 ? ` (${skipped} ignorée${skipped > 1 ? 's' : ''}, format invalide)` : ''
+      alert(`${imported} facture${imported > 1 ? 's' : ''} importée${imported > 1 ? 's' : ''}${skippedNote}.`)
+    }
+  } catch {
+    alert("Fichier invalide : impossible de lire ce fichier JSON.")
+  }
+}
 
 const VIEW_MODE_KEY = 'flofactures:dashboard-view-mode:v1'
 const viewMode = ref<'grid' | 'list'>(getItem<'grid' | 'list'>(VIEW_MODE_KEY, 'grid'))
@@ -43,6 +69,8 @@ function handleRemove(id: string, name: string) {
       <h2 class="font-display text-2xl text-ink">Mes factures</h2>
       <div class="flex items-center gap-3">
         <ViewModeToggle v-if="invoices.length > 0" :model-value="viewMode" @update:model-value="setViewMode" />
+        <input ref="importInputRef" type="file" accept="application/json" class="hidden" @change="handleImportFile" />
+        <BaseButton variant="secondary" @click="triggerImport">Importer (JSON)</BaseButton>
         <BaseButton variant="primary" @click="emit('create')">+ Nouvelle facture</BaseButton>
       </div>
     </div>
