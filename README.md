@@ -7,8 +7,10 @@
 
 </div>
 
-<img src="docs/dashboard.png" alt="Tableau de bord" width="49%" />
-<img src="docs/editor.png" alt="Éditeur de facture" width="49%" />
+<div style="display:flex; gap:1rem; flex-wrap:wrap;">
+  <img src="docs/dashboard.png" alt="Tableau de bord" style="width:49%;" />
+  <img src="docs/editor.png" alt="Éditeur de facture" style="width:49%;" />
+</div>
 
 
 ## À propos
