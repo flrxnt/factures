@@ -38,6 +38,7 @@ export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
   withholding: false,
   notes: true,
   paymentDetails: true,
+  paymentLink: false,
   signature: false,
   footer: false,
 }
@@ -107,6 +108,7 @@ export function createEmptyInvoice(): Invoice {
       bic: '',
       otherInstructions: '',
     },
+    paymentLink: '',
     signatureLabel: '',
     signatureImageDataUrl: '',
     footerNoteLeft: '',

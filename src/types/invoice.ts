@@ -23,6 +23,7 @@ export type SectionKey =
   | 'withholding'
   | 'notes'
   | 'paymentDetails'
+  | 'paymentLink'
   | 'signature'
   | 'footer'
 
@@ -112,6 +113,9 @@ export interface Invoice {
   notes: string
   termsAndConditions: string
   payment: PaymentDetails
+  /** External payment page URL — pasted manually or generated via a
+   * configured provider (Stripe/PayDunya). Empty string if none. */
+  paymentLink: string
   signatureLabel: string
   /** Hand-drawn (canvas) or uploaded signature image, data URL — empty string
    * if none. Same storage regardless of how it was captured. */

@@ -23,6 +23,7 @@ export const SECTION_ORDER: SectionDescriptor[] = [
   { key: 'withholding', labelFr: 'Impôt sur le revenu (retenue)' },
   { key: 'notes', labelFr: 'Notes et conditions' },
   { key: 'paymentDetails', labelFr: 'Coordonnées bancaires' },
+  { key: 'paymentLink', labelFr: 'Lien de paiement' },
   { key: 'signature', labelFr: 'Signature' },
   { key: 'footer', labelFr: 'Notes de bas de page' },
 ]
@@ -41,7 +42,7 @@ export const SECTION_ORDER: SectionDescriptor[] = [
  * toggles, the totals block reads `discount`/`withholding`) rather than
  * being their own block.
  */
-export const BLOCK_SECTION_ORDER: SectionKey[] = ['sellerInfo', 'invoiceMeta', 'clientInfo', 'notes', 'paymentDetails', 'signature']
+export const BLOCK_SECTION_ORDER: SectionKey[] = ['sellerInfo', 'invoiceMeta', 'clientInfo', 'notes', 'paymentDetails', 'paymentLink', 'signature']
 
 const ITEMS_TABLE_SPLIT_INDEX = BLOCK_SECTION_ORDER.indexOf('notes')
 export const BEFORE_ITEMS_TABLE = BLOCK_SECTION_ORDER.slice(0, ITEMS_TABLE_SPLIT_INDEX)

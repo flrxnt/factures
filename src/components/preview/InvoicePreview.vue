@@ -8,6 +8,7 @@ import PreviewItemsTable from './PreviewItemsTable.vue'
 import PreviewTotals from './PreviewTotals.vue'
 import PreviewNotes from './PreviewNotes.vue'
 import PreviewPayment from './PreviewPayment.vue'
+import PreviewPaymentLink from './PreviewPaymentLink.vue'
 import PreviewSignature from './PreviewSignature.vue'
 import PreviewFooter from './PreviewFooter.vue'
 
@@ -63,6 +64,8 @@ const { totals } = useInvoiceTotals(props.invoice)
     <PreviewNotes v-if="invoice.visibleSections.notes" :notes="invoice.notes" :terms-and-conditions="invoice.termsAndConditions" />
 
     <PreviewPayment v-if="invoice.visibleSections.paymentDetails" :payment="invoice.payment" />
+
+    <PreviewPaymentLink v-if="invoice.visibleSections.paymentLink" :payment-link="invoice.paymentLink" />
 
     <PreviewSignature
       v-if="invoice.visibleSections.signature"

@@ -26,6 +26,7 @@ export const EMAIL_TEMPLATE_TOKENS = [
   { token: '{{invoiceNumber}}', description: 'Numéro de facture' },
   { token: '{{total}}', description: 'Montant net à payer' },
   { token: '{{sellerName}}', description: 'Nom du vendeur' },
+  { token: '{{paymentLink}}', description: 'Lien de paiement en ligne' },
 ]
 
 export function createDefaultAppSettings(): AppSettings {
@@ -49,6 +50,11 @@ export function createDefaultAppSettings(): AppSettings {
       taxRatePercent: DEFAULT_TAX_RATE_PERCENT,
       template: DEFAULT_TEMPLATE,
       themeColor: DEFAULT_THEME_COLOR,
+    },
+    payments: {
+      activeProvider: null,
+      stripe: { enabled: false },
+      paydunya: { enabled: false, masterKey: '', publicKey: '', mode: 'test' },
     },
   }
 }

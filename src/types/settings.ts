@@ -23,9 +23,30 @@ export interface InvoiceDefaults {
   themeColor: string
 }
 
+export type PaymentProviderKind = 'stripe' | 'paydunya'
+export type PaymentMode = 'test' | 'live'
+
+export interface StripeProviderSettings {
+  enabled: boolean
+}
+
+export interface PayDunyaProviderSettings {
+  enabled: boolean
+  masterKey: string
+  publicKey: string
+  mode: PaymentMode
+}
+
+export interface PaymentSettings {
+  activeProvider: PaymentProviderKind | null
+  stripe: StripeProviderSettings
+  paydunya: PayDunyaProviderSettings
+}
+
 export interface AppSettings {
   schemaVersion: number
   theme: AppTheme
   smtp: SmtpConfig
   invoiceDefaults: InvoiceDefaults
+  payments: PaymentSettings
 }

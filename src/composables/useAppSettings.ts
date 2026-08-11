@@ -15,6 +15,12 @@ function mergeWithDefaults(stored: Partial<AppSettings> | null): AppSettings {
     theme: stored.theme ?? defaults.theme,
     smtp: { ...defaults.smtp, ...(stored.smtp ?? {}) },
     invoiceDefaults: { ...defaults.invoiceDefaults, ...(stored.invoiceDefaults ?? {}) },
+    payments: {
+      ...defaults.payments,
+      ...(stored.payments ?? {}),
+      stripe: { ...defaults.payments.stripe, ...(stored.payments?.stripe ?? {}) },
+      paydunya: { ...defaults.payments.paydunya, ...(stored.payments?.paydunya ?? {}) },
+    },
   }
 }
 

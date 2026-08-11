@@ -12,6 +12,7 @@ import DiscountForm from './DiscountForm.vue'
 import WithholdingForm from './WithholdingForm.vue'
 import NotesForm from './NotesForm.vue'
 import PaymentDetailsForm from './PaymentDetailsForm.vue'
+import PaymentLinkForm from './PaymentLinkForm.vue'
 import SignatureForm from './SignatureForm.vue'
 import FooterNotesForm from './FooterNotesForm.vue'
 
@@ -77,6 +78,10 @@ function removeItem(id: string) {
 
     <div v-if="invoice.visibleSections.paymentDetails" class="py-8">
       <PaymentDetailsForm :payment="invoice.payment" />
+    </div>
+
+    <div v-if="invoice.visibleSections.paymentLink" class="py-8">
+      <PaymentLinkForm :invoice="invoice" />
     </div>
 
     <div v-if="invoice.visibleSections.signature" class="py-8">

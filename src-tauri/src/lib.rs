@@ -11,6 +11,11 @@ pub fn run() {
       commands::email::delete_smtp_password,
       commands::email::test_smtp_connection,
       commands::email::send_invoice_email,
+      commands::payments::save_payment_secret,
+      commands::payments::has_payment_secret,
+      commands::payments::delete_payment_secret,
+      commands::payments::create_stripe_payment_link,
+      commands::payments::create_paydunya_payment_link,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

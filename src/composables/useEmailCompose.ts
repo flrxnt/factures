@@ -45,6 +45,7 @@ async function openCompose(invoice: Invoice) {
     invoiceNumber: invoice.meta.invoiceNumber,
     total: formatCurrency(totals.netPayable, invoice.meta.currency, invoice.meta.locale),
     sellerName: invoice.seller.name,
+    paymentLink: invoice.paymentLink,
   }
 
   composeState.invoice = invoice

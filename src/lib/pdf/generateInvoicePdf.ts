@@ -10,6 +10,7 @@ import { drawItemsTable } from './sections/drawItemsTable'
 import { drawTotals } from './sections/drawTotals'
 import { drawNotes } from './sections/drawNotes'
 import { drawPayment } from './sections/drawPayment'
+import { drawPaymentLink } from './sections/drawPaymentLink'
 import { drawSignature } from './sections/drawSignature'
 import { drawFooter } from './sections/drawFooter'
 
@@ -26,6 +27,7 @@ const BLOCK_DRAWERS: Partial<Record<SectionKey, BlockDrawer>> = {
   clientInfo: drawClient,
   notes: drawNotes,
   paymentDetails: drawPayment,
+  paymentLink: drawPaymentLink,
   signature: drawSignature,
 }
 

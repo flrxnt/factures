@@ -4,7 +4,7 @@ use lettre::transport::smtp::authentication::Credentials;
 use lettre::{AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
 use serde::Deserialize;
 
-const KEYRING_SERVICE: &str = "com.flrxnt.facture";
+use super::KEYRING_SERVICE;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
