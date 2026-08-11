@@ -20,7 +20,7 @@
 ## Fonctionnalités
 
 - **Édition en temps réel** — formulaire à gauche, aperçu fidèle au PDF à droite, mis à jour instantanément.
-- **Export PDF vectoriel** — généré avec jsPDF (texte net et sélectionnable, pas une capture d'écran).
+- **Export PDF vectoriel** — généré avec jsPDF.
 - **3 mises en page** (éditorial, minimal, bold) et une couleur d'accent par facture, appliquées identiquement à l'écran et au PDF.
 - **Sections à la carte** — logo, coordonnées, colonnes du tableau, remise, retenue à la source, signature, notes de bas de page : chaque bloc peut être affiché ou masqué.
 - **Signature** — dessinée à la main (canvas) ou importée en image.
@@ -115,4 +115,4 @@ Aucune donnée saisie (informations client, montants, signature) ne transite par
 
 ## Licence
 
-Projet privé — tous droits réservés.
+MIT
