@@ -13,8 +13,8 @@ defineEmits<{
     <button
       type="button"
       title="Vue grille"
-      class="flex h-7 w-7 items-center justify-center rounded-full transition"
-      :class="modelValue === 'grid' ? 'bg-ink text-paper' : 'text-muted hover:text-ink'"
+      class="flex h-7 w-7 items-center justify-center rounded-full transition active:scale-90"
+      :class="modelValue === 'grid' ? 'bg-ink text-paper' : 'text-muted hover:bg-paper-dim hover:text-ink'"
       @click="$emit('update:modelValue', 'grid')"
     >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
@@ -27,8 +27,8 @@ defineEmits<{
     <button
       type="button"
       title="Vue liste"
-      class="flex h-7 w-7 items-center justify-center rounded-full transition"
-      :class="modelValue === 'list' ? 'bg-ink text-paper' : 'text-muted hover:text-ink'"
+      class="flex h-7 w-7 items-center justify-center rounded-full transition active:scale-90"
+      :class="modelValue === 'list' ? 'bg-ink text-paper' : 'text-muted hover:bg-paper-dim hover:text-ink'"
       @click="$emit('update:modelValue', 'list')"
     >
       <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">

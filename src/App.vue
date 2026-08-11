@@ -6,18 +6,24 @@ import { useInvoiceCollection } from './composables/useInvoiceCollection'
 import { useAppNavigation } from './composables/useAppNavigation'
 import { usePdfExport } from './composables/usePdfExport'
 import { useUndoHistory } from './composables/useUndoHistory'
+import { useAppTheme } from './composables/useAppTheme'
+import { useEmailCompose } from './composables/useEmailCompose'
 import AppHeader from './components/layout/AppHeader.vue'
 import TwoPaneLayout from './components/layout/TwoPaneLayout.vue'
 import InvoiceForm from './components/form/InvoiceForm.vue'
 import InvoicePreview from './components/preview/InvoicePreview.vue'
 import DashboardView from './components/dashboard/DashboardView.vue'
+import SettingsView from './components/settings/SettingsView.vue'
 import AppDialog from './components/ui/AppDialog.vue'
+import EmailComposeDialog from './components/ui/EmailComposeDialog.vue'
 
 const { invoice, replaceInvoice } = useInvoiceStore()
 const { create, cloneForEditing, useAutosave } = useInvoiceCollection()
-const { view, openDashboard, openEditor } = useAppNavigation()
+const { view, openDashboard, openEditor, openSettings } = useAppNavigation()
 const { exportPdf } = usePdfExport()
 const { undo, redo, reset: resetUndoHistory, canUndo, canRedo } = useUndoHistory(invoice)
+const { start: startTheme, stop: stopTheme } = useAppTheme()
+const { openCompose } = useEmailCompose()
 
 // The store's `invoice` object identity never changes (replaceInvoice mutates
 // it in place), so a single autosave watcher set up once here keeps working
@@ -67,8 +73,14 @@ function handleKeydown(event: KeyboardEvent) {
   else undo()
 }
 
-onMounted(() => window.addEventListener('keydown', handleKeydown))
-onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+  startTheme()
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  stopTheme()
+})
 </script>
 
 <template>
@@ -85,19 +97,26 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
       @undo="undo"
       @redo="redo"
       @export="exportPdf(invoice)"
+      @open-settings="openSettings"
+      @send-email="openCompose(invoice)"
     />
 
-    <DashboardView v-if="view === 'dashboard'" @create="handleCreate" @open="handleOpen" />
+    <Transition name="view-fade" mode="out-in">
+      <DashboardView v-if="view === 'dashboard'" key="dashboard" @create="handleCreate" @open="handleOpen" />
 
-    <TwoPaneLayout v-else>
-      <template #form>
-        <InvoiceForm :invoice="invoice" />
-      </template>
-      <template #preview>
-        <InvoicePreview :invoice="invoice" />
-      </template>
-    </TwoPaneLayout>
+      <SettingsView v-else-if="view === 'settings'" key="settings" />
+
+      <TwoPaneLayout v-else key="editor">
+        <template #form>
+          <InvoiceForm :invoice="invoice" />
+        </template>
+        <template #preview>
+          <InvoicePreview :invoice="invoice" />
+        </template>
+      </TwoPaneLayout>
+    </Transition>
 
     <AppDialog />
+    <EmailComposeDialog />
   </div>
 </template>

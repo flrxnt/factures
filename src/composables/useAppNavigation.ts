@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-export type AppView = 'dashboard' | 'editor'
+export type AppView = 'dashboard' | 'editor' | 'settings'
 
 const view = ref<AppView>('dashboard')
 const activeInvoiceId = ref<string | null>(null)
@@ -15,8 +15,13 @@ function openEditor(invoiceId: string) {
   view.value = 'editor'
 }
 
+function openSettings() {
+  view.value = 'settings'
+  activeInvoiceId.value = null
+}
+
 /** Reactive singleton: a single global "which screen / which invoice" state
- * is enough for this app's two views — no need for a router. */
+ * is enough for this app's views — no need for a router. */
 export function useAppNavigation() {
-  return { view, activeInvoiceId, openDashboard, openEditor }
+  return { view, activeInvoiceId, openDashboard, openEditor, openSettings }
 }

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { isTauri } from '@tauri-apps/api/core'
+import { Pencil, Copy, Mail, Trash2 } from '@lucide/vue'
 import type { Invoice, InvoiceStatus } from '../../types/invoice'
 import { computeInvoiceTotals } from '../../lib/calculations'
 import { formatCurrency } from '../../composables/useCurrencyFormat'
 import { UNTITLED_INVOICE_NAME } from '../../config/defaults'
 import InvoicePreview from '../preview/InvoicePreview.vue'
 import StatusSelect from '../ui/StatusSelect.vue'
+import ActionsMenu from '../ui/ActionsMenu.vue'
 
 const props = defineProps<{
   invoice: Invoice
@@ -16,8 +19,11 @@ const emit = defineEmits<{
   rename: [name: string]
   duplicate: []
   remove: []
+  'send-email': []
   'status-change': [status: InvoiceStatus]
 }>()
+
+const isTauriEnv = isTauri()
 
 const totals = computed(() => computeInvoiceTotals(props.invoice))
 
@@ -75,10 +81,30 @@ function commitRename() {
           @blur="commitRename"
         />
         <p v-else class="min-w-0 flex-1 truncate text-sm font-medium text-ink">{{ invoice.name || UNTITLED_INVOICE_NAME }}</p>
-        <div class="flex shrink-0 gap-1 opacity-0 transition group-hover:opacity-100">
-          <button type="button" title="Renommer" class="text-muted hover:text-ink" @click="startRename">✎</button>
-          <button type="button" title="Dupliquer" class="text-muted hover:text-ink" @click.stop="$emit('duplicate')">⧉</button>
-          <button type="button" title="Supprimer" class="text-muted hover:text-accent-dark" @click.stop="$emit('remove')">✕</button>
+        <div class="opacity-0 transition group-hover:opacity-100">
+          <ActionsMenu>
+            <button type="button" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-paper-dim" @click="startRename">
+              <Pencil class="h-4 w-4" /> Renommer
+            </button>
+            <button type="button" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-paper-dim" @click.stop="$emit('duplicate')">
+              <Copy class="h-4 w-4" /> Dupliquer
+            </button>
+            <button
+              v-if="isTauriEnv"
+              type="button"
+              class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-paper-dim"
+              @click.stop="$emit('send-email')"
+            >
+              <Mail class="h-4 w-4" /> Envoyer par e-mail
+            </button>
+            <button
+              type="button"
+              class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-accent-dark hover:bg-paper-dim"
+              @click.stop="$emit('remove')"
+            >
+              <Trash2 class="h-4 w-4" /> Supprimer
+            </button>
+          </ActionsMenu>
         </div>
       </div>
       <p class="truncate text-xs text-muted">

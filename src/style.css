@@ -22,6 +22,22 @@
   --color-accent-soft: #f1ded0;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark {
+  --color-paper: #211d18;
+  --color-paper-dim: #2a251f;
+  --color-surface: #2c2620;
+  --color-ink: #f2ede2;
+  --color-ink-soft: #cabfae;
+  --color-muted: #8f8574;
+  --color-hairline: #423a30;
+  --color-hairline-strong: #55493a;
+  --color-accent: #c7734a;
+  --color-accent-dark: #e08a5e;
+  --color-accent-soft: #4a3226;
+}
+
 html {
   background: var(--color-paper);
 }
@@ -30,6 +46,28 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-feature-settings: "ss01" 1;
+}
+
+/* Native <button>/<select> default to a plain arrow cursor in most browsers
+ * — every clickable control in the app should read as clickable. */
+button:not(:disabled),
+select:not(:disabled),
+[role="button"] {
+  cursor: pointer;
+}
+
+/* View transition — dashboard/editor/settings swap with a soft fade + rise
+ * instead of an instant hard cut. */
+.view-fade-enter-active,
+.view-fade-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.view-fade-enter-from,
+.view-fade-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
 }
 
 @media print {

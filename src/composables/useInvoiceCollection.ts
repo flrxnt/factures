@@ -2,6 +2,7 @@ import { ref, watch } from 'vue'
 import type { Invoice, InvoiceStatus } from '../types/invoice'
 import { getItem, setItem } from '../lib/storage'
 import { MAX_INVOICES, createEmptyInvoice } from '../config/defaults'
+import { useAppSettings } from './useAppSettings'
 
 const INVOICES_KEY = 'flofactures:invoices:v1'
 const AUTOSAVE_DELAY_MS = 400
@@ -55,6 +56,12 @@ function cloneForEditing(id: string): Invoice | null {
  * dashboard right away), and returns an independent working copy. */
 function create(): Invoice {
   const invoice = createEmptyInvoice()
+  const { invoiceDefaults } = useAppSettings().settings
+  invoice.meta.currency = invoiceDefaults.currency
+  invoice.meta.locale = invoiceDefaults.locale
+  invoice.meta.defaultTaxRatePercent = invoiceDefaults.taxRatePercent
+  invoice.themeColor = invoiceDefaults.themeColor
+  invoice.template = invoiceDefaults.template
   invoices.value.unshift(invoice)
   persist()
   return JSON.parse(JSON.stringify(invoice))

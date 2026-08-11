@@ -6,6 +6,8 @@ import { getItem, setItem } from '../../lib/storage'
 import { STATUS_ORDER, getStatusDescriptor } from '../../config/statuses'
 import { exportInvoicesAsCsv, exportInvoicesAsJson } from '../../lib/exportData'
 import { useAppDialog } from '../../composables/useAppDialog'
+import { useEmailCompose } from '../../composables/useEmailCompose'
+import { X } from '@lucide/vue'
 import InvoiceCard from './InvoiceCard.vue'
 import InvoiceListRow from './InvoiceListRow.vue'
 import NewInvoiceCard from './NewInvoiceCard.vue'
@@ -19,6 +21,7 @@ const emit = defineEmits<{
 
 const { invoices, remove, rename, duplicate, setStatus, importInvoices } = useInvoiceCollection()
 const { confirm: confirmDialog, alert: alertDialog } = useAppDialog()
+const { openCompose } = useEmailCompose()
 
 const importInputRef = ref<HTMLInputElement | null>(null)
 
@@ -111,7 +114,15 @@ async function handleRemove(id: string, name: string) {
           placeholder="Rechercher une facture, un client..."
           class="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted"
         />
-        <button v-if="searchQuery" type="button" class="shrink-0 text-muted hover:text-ink" title="Effacer" @click="searchQuery = ''">✕</button>
+        <button
+          v-if="searchQuery"
+          type="button"
+          class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-paper-dim hover:text-ink active:scale-90"
+          title="Effacer"
+          @click="searchQuery = ''"
+        >
+          <X class="h-3.5 w-3.5" />
+        </button>
       </label>
     </div>
 
@@ -119,7 +130,7 @@ async function handleRemove(id: string, name: string) {
       <div class="flex flex-wrap gap-2">
         <button
           type="button"
-          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition"
+          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
           :class="statusFilter === 'all' ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
           @click="statusFilter = 'all'"
         >
@@ -129,7 +140,7 @@ async function handleRemove(id: string, name: string) {
           v-for="status in STATUS_ORDER"
           :key="status.value"
           type="button"
-          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition"
+          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
           :style="statusFilter === status.value ? { borderColor: status.color, backgroundColor: status.color, color: '#fffdf8' } : { borderColor: status.color + '55', color: status.color }"
           @click="statusFilter = status.value"
         >
@@ -163,6 +174,7 @@ async function handleRemove(id: string, name: string) {
         @rename="(name) => rename(invoice.id, name)"
         @duplicate="duplicate(invoice.id)"
         @remove="handleRemove(invoice.id, invoice.name)"
+        @send-email="openCompose(invoice)"
         @status-change="(status) => setStatus(invoice.id, status)"
       />
     </div>
@@ -176,6 +188,7 @@ async function handleRemove(id: string, name: string) {
         @rename="(name) => rename(invoice.id, name)"
         @duplicate="duplicate(invoice.id)"
         @remove="handleRemove(invoice.id, invoice.name)"
+        @send-email="openCompose(invoice)"
         @status-change="(status) => setStatus(invoice.id, status)"
       />
     </ul>
