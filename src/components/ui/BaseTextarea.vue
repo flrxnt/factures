@@ -4,6 +4,7 @@ defineProps<{
   label?: string
   placeholder?: string
   rows?: number
+  error?: string
 }>()
 
 defineEmits<{
@@ -18,8 +19,11 @@ defineEmits<{
       :value="modelValue"
       :placeholder="placeholder"
       :rows="rows ?? 3"
-      class="w-full rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-accent"
+      :aria-invalid="!!error"
+      class="w-full rounded-md border bg-surface px-3 py-2 text-sm text-ink outline-none transition placeholder:text-muted/70"
+      :class="error ? 'border-[#7d2e3b] focus:border-[#7d2e3b]' : 'border-hairline focus:border-accent'"
       @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
     />
+    <span v-if="error" class="mt-1 block text-xs text-[#7d2e3b]">{{ error }}</span>
   </label>
 </template>

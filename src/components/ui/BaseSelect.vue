@@ -3,6 +3,7 @@ defineProps<{
   modelValue: string
   label?: string
   options: { value: string; label: string }[]
+  error?: string
 }>()
 
 defineEmits<{
@@ -16,7 +17,9 @@ defineEmits<{
     <span class="relative block">
       <select
         :value="modelValue"
-        class="w-full appearance-none border-0 border-b border-hairline-strong bg-transparent px-0.5 py-1.5 pr-5 text-sm text-ink outline-none transition focus:border-accent"
+        :aria-invalid="!!error"
+        class="w-full appearance-none border-0 border-b bg-transparent px-0.5 py-1.5 pr-5 text-sm text-ink outline-none transition"
+        :class="error ? 'border-[#7d2e3b] focus:border-[#7d2e3b]' : 'border-hairline-strong focus:border-accent'"
         @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
       >
         <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
@@ -25,5 +28,6 @@ defineEmits<{
         <path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </span>
+    <span v-if="error" class="mt-1 block text-xs text-[#7d2e3b]">{{ error }}</span>
   </label>
 </template>

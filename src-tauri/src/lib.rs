@@ -1,4 +1,8 @@
 mod commands;
+mod db;
+
+use std::sync::Mutex;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -16,6 +20,8 @@ pub fn run() {
       commands::payments::delete_payment_secret,
       commands::payments::create_stripe_payment_link,
       commands::payments::create_paydunya_payment_link,
+      commands::migration::import_legacy_invoices,
+      commands::migration::has_imported_legacy_invoices,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
@@ -25,6 +31,11 @@ pub fn run() {
             .build(),
         )?;
       }
+
+      let app_data_dir = app.path().app_data_dir().expect("no app data dir resolved");
+      let conn = db::open(&app_data_dir).expect("failed to open the local database");
+      app.manage(db::DbState(Mutex::new(conn)));
+
       Ok(())
     })
     .run(tauri::generate_context!())
