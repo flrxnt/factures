@@ -5,6 +5,7 @@ import { useInvoiceCollection } from '../../composables/useInvoiceCollection'
 import { getItem, setItem } from '../../lib/storage'
 import { STATUS_ORDER, getStatusDescriptor } from '../../config/statuses'
 import { exportInvoicesAsCsv, exportInvoicesAsJson } from '../../lib/exportData'
+import { useAppDialog } from '../../composables/useAppDialog'
 import InvoiceCard from './InvoiceCard.vue'
 import InvoiceListRow from './InvoiceListRow.vue'
 import NewInvoiceCard from './NewInvoiceCard.vue'
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 }>()
 
 const { invoices, remove, rename, duplicate, setStatus, importInvoices } = useInvoiceCollection()
+const { confirm: confirmDialog, alert: alertDialog } = useAppDialog()
 
 const importInputRef = ref<HTMLInputElement | null>(null)
 
@@ -34,13 +36,13 @@ async function handleImportFile(event: Event) {
     const payload = JSON.parse(await file.text())
     const { imported, skipped } = importInvoices(payload)
     if (imported === 0 && skipped === 0) {
-      alert("Fichier invalide : aucune facture trouvée dans ce fichier JSON.")
+      await alertDialog('Fichier invalide : aucune facture trouvée dans ce fichier JSON.', { title: 'Import impossible' })
     } else {
       const skippedNote = skipped > 0 ? ` (${skipped} ignorée${skipped > 1 ? 's' : ''}, format invalide)` : ''
-      alert(`${imported} facture${imported > 1 ? 's' : ''} importée${imported > 1 ? 's' : ''}${skippedNote}.`)
+      await alertDialog(`${imported} facture${imported > 1 ? 's' : ''} importée${imported > 1 ? 's' : ''}${skippedNote}.`, { title: 'Import terminé' })
     }
   } catch {
-    alert("Fichier invalide : impossible de lire ce fichier JSON.")
+    await alertDialog('Fichier invalide : impossible de lire ce fichier JSON.', { title: 'Import impossible' })
   }
 }
 
@@ -52,14 +54,36 @@ function setViewMode(mode: 'grid' | 'list') {
 }
 
 const statusFilter = ref<InvoiceStatus | 'all'>('all')
-const filteredInvoices = computed(() =>
-  statusFilter.value === 'all' ? invoices.value : invoices.value.filter((invoice) => invoice.status === statusFilter.value),
-)
+const searchQuery = ref('')
 
-function handleRemove(id: string, name: string) {
-  if (confirm(`Supprimer « ${name || 'cette facture'} » ? Cette action est irréversible.`)) {
-    remove(id)
+function normalize(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // strip accents so "café" matches "cafe"
+}
+
+const filteredInvoices = computed(() => {
+  let result = invoices.value
+  if (statusFilter.value !== 'all') {
+    result = result.filter((invoice) => invoice.status === statusFilter.value)
   }
+  const query = normalize(searchQuery.value.trim())
+  if (query) {
+    result = result.filter((invoice) =>
+      [invoice.name, invoice.client.name, invoice.meta.invoiceNumber, invoice.seller.name].some((field) => normalize(field).includes(query)),
+    )
+  }
+  return result
+})
+
+async function handleRemove(id: string, name: string) {
+  const confirmed = await confirmDialog(`Supprimer « ${name || 'cette facture'} » ? Cette action est irréversible.`, {
+    title: 'Supprimer la facture',
+    confirmLabel: 'Supprimer',
+    danger: true,
+  })
+  if (confirmed) remove(id)
 }
 </script>
 
@@ -73,6 +97,22 @@ function handleRemove(id: string, name: string) {
         <BaseButton variant="secondary" @click="triggerImport">Importer (JSON)</BaseButton>
         <BaseButton variant="primary" @click="emit('create')">+ Nouvelle facture</BaseButton>
       </div>
+    </div>
+
+    <div v-if="invoices.length > 0" class="mb-4">
+      <label class="flex items-center gap-2 rounded-full border border-hairline-strong bg-surface px-3.5 py-2 sm:max-w-xs">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0 text-muted">
+          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4" />
+          <line x1="9.8" y1="9.8" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+        </svg>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Rechercher une facture, un client..."
+          class="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted"
+        />
+        <button v-if="searchQuery" type="button" class="shrink-0 text-muted hover:text-ink" title="Effacer" @click="searchQuery = ''">✕</button>
+      </label>
     </div>
 
     <div v-if="invoices.length > 0" class="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -109,11 +149,12 @@ function handleRemove(id: string, name: string) {
       v-else-if="filteredInvoices.length === 0"
       class="rounded-2xl border border-dashed border-hairline-strong py-16 text-center text-sm text-muted"
     >
-      Aucune facture avec le statut « {{ getStatusDescriptor(statusFilter as InvoiceStatus).labelFr }} ».
+      <template v-if="searchQuery">Aucune facture ne correspond à « {{ searchQuery }} ».</template>
+      <template v-else>Aucune facture avec le statut « {{ getStatusDescriptor(statusFilter as InvoiceStatus).labelFr }} ».</template>
     </p>
 
     <div v-else-if="viewMode === 'grid'" class="flex flex-wrap gap-5">
-      <NewInvoiceCard v-if="statusFilter === 'all'" @click="emit('create')" />
+      <NewInvoiceCard v-if="statusFilter === 'all' && !searchQuery" @click="emit('create')" />
       <InvoiceCard
         v-for="invoice in filteredInvoices"
         :key="invoice.id"

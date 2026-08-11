@@ -8,8 +8,50 @@ import { PDF_THEME, hexToRgb } from '../pdfTheme'
 
 const ROW_HEIGHT = 5.5
 
+function drawEmphasizedRow(doc: jsPDF, invoice: Invoice, label: string, value: string, labelX: number, right: number, y: number): void {
+  const { template } = invoice
+  const accent = hexToRgb(invoice.themeColor)
+
+  if (template === 'minimal') {
+    doc.setFillColor(...accent)
+    doc.rect(labelX, y - 3, 1.6, 1.6, 'F')
+    doc.setFont(PDF_THEME.font.body, 'bold')
+    doc.setFontSize(PDF_THEME.font.sizeBody)
+    doc.setTextColor(...PDF_THEME.colors.ink)
+    doc.text(label.toUpperCase(), labelX + 3, y)
+    doc.text(value, right, y, { align: 'right' })
+    return
+  }
+
+  if (template === 'bold') {
+    doc.setFont(PDF_THEME.font.body, 'bold')
+    doc.setFontSize(PDF_THEME.font.sizeBody)
+    doc.setTextColor(...PDF_THEME.colors.ink)
+    doc.text(label.toUpperCase(), labelX, y)
+
+    doc.setFont(PDF_THEME.font.body, 'bold')
+    doc.setFontSize(PDF_THEME.font.sizeBody)
+    const valueWidth = doc.getTextWidth(value)
+    const pillWidth = valueWidth + 8
+    doc.setFillColor(...accent)
+    doc.roundedRect(right - pillWidth, y - 4.5, pillWidth, 6.5, 3.25, 3.25, 'F')
+    doc.setTextColor(255, 253, 248)
+    doc.text(value, right - pillWidth / 2, y, { align: 'center' })
+    return
+  }
+
+  // editorial
+  doc.setFont(PDF_THEME.font.display, 'bold')
+  doc.setFontSize(PDF_THEME.font.sizeTotal)
+  doc.setTextColor(...PDF_THEME.colors.ink)
+  doc.text(label, labelX, y)
+  doc.setTextColor(...accent)
+  doc.text(value, right, y, { align: 'right' })
+}
+
 export function drawTotals(doc: jsPDF, invoice: Invoice, cursor: PdfCursor, totals: InvoiceTotals): void {
   const { currency, locale } = invoice.meta
+  const { template } = invoice
   // Only actually shifts emphasis to "Net à payer" once withholding is both
   // toggled on AND has a non-zero effect — mirrors PreviewTotals.vue.
   const withholdingActive = invoice.visibleSections.withholding && totals.withholdingAmount > 0
@@ -41,16 +83,13 @@ export function drawTotals(doc: jsPDF, invoice: Invoice, cursor: PdfCursor, tota
   for (const [label, value, isEmphasized] of rows) {
     if (isEmphasized) {
       y += 2
-      doc.setDrawColor(...PDF_THEME.colors.hairlineStrong)
-      doc.setLineWidth(0.3)
-      doc.line(labelX, y - 4, right, y - 4)
-      doc.setLineWidth(0.1)
-      doc.setFont(PDF_THEME.font.display, 'bold')
-      doc.setFontSize(PDF_THEME.font.sizeTotal)
-      doc.setTextColor(...PDF_THEME.colors.ink)
-      doc.text(label, labelX, y)
-      doc.setTextColor(...hexToRgb(invoice.themeColor))
-      doc.text(value, right, y, { align: 'right' })
+      if (template === 'editorial') {
+        doc.setDrawColor(...PDF_THEME.colors.hairlineStrong)
+        doc.setLineWidth(0.3)
+        doc.line(labelX, y - 4, right, y - 4)
+        doc.setLineWidth(0.1)
+      }
+      drawEmphasizedRow(doc, invoice, label, value, labelX, right, y)
     } else {
       doc.setFont(PDF_THEME.font.body, 'normal')
       doc.setFontSize(PDF_THEME.font.sizeBody)

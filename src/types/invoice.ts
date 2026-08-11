@@ -1,5 +1,14 @@
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
 
+/**
+ * A layout style, not just a color — each one changes title typography,
+ * header arrangement, and table/totals treatment, applied identically to
+ * the on-screen preview and the PDF. See config/templates.ts for the
+ * catalogue and lib/pdf/pdfTheme.ts / preview components for how each is
+ * actually drawn.
+ */
+export type InvoiceTemplate = 'editorial' | 'minimal' | 'bold'
+
 export type SectionKey =
   | 'logo'
   | 'sellerInfo'
@@ -121,6 +130,8 @@ export interface Invoice {
   /** Hex color (e.g. "#a24a2c") driving the accent color of this specific
    * invoice's preview and PDF — not a global app setting. */
   themeColor: string
+  /** Layout style for this specific invoice's preview and PDF. */
+  template: InvoiceTemplate
   createdAt: string
   updatedAt: string
 }

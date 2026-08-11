@@ -11,6 +11,7 @@ import TwoPaneLayout from './components/layout/TwoPaneLayout.vue'
 import InvoiceForm from './components/form/InvoiceForm.vue'
 import InvoicePreview from './components/preview/InvoicePreview.vue'
 import DashboardView from './components/dashboard/DashboardView.vue'
+import AppDialog from './components/ui/AppDialog.vue'
 
 const { invoice, replaceInvoice } = useInvoiceStore()
 const { create, cloneForEditing, useAutosave } = useInvoiceCollection()
@@ -96,5 +97,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
         <InvoicePreview :invoice="invoice" />
       </template>
     </TwoPaneLayout>
+
+    <AppDialog />
   </div>
 </template>

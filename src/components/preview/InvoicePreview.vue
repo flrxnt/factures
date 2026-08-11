@@ -24,9 +24,19 @@ const { totals } = useInvoiceTotals(props.invoice)
     class="mx-auto w-full max-w-[794px] space-y-8 border border-hairline bg-surface p-8 text-ink shadow-[0_1px_2px_rgba(28,26,20,0.04)] sm:p-12"
     :style="{ '--color-accent': invoice.themeColor }"
   >
-    <PreviewHeader v-if="invoice.visibleSections.sellerInfo" :seller="invoice.seller" :show-logo="invoice.visibleSections.logo" />
+    <PreviewHeader
+      v-if="invoice.visibleSections.sellerInfo"
+      :seller="invoice.seller"
+      :show-logo="invoice.visibleSections.logo"
+      :template="invoice.template"
+    />
 
-    <PreviewMeta v-if="invoice.visibleSections.invoiceMeta" :meta="invoice.meta" :show-due-date="invoice.visibleSections.dueDate" />
+    <PreviewMeta
+      v-if="invoice.visibleSections.invoiceMeta"
+      :meta="invoice.meta"
+      :show-due-date="invoice.visibleSections.dueDate"
+      :template="invoice.template"
+    />
 
     <PreviewClient v-if="invoice.visibleSections.clientInfo" :client="invoice.client" />
 
@@ -38,6 +48,7 @@ const { totals } = useInvoiceTotals(props.invoice)
       :show-line-total-column="invoice.visibleSections.lineTotalColumn"
       :currency="invoice.meta.currency"
       :locale="invoice.meta.locale"
+      :template="invoice.template"
     />
 
     <PreviewTotals
@@ -46,6 +57,7 @@ const { totals } = useInvoiceTotals(props.invoice)
       :show-withholding="invoice.visibleSections.withholding"
       :currency="invoice.meta.currency"
       :locale="invoice.meta.locale"
+      :template="invoice.template"
     />
 
     <PreviewNotes v-if="invoice.visibleSections.notes" :notes="invoice.notes" :terms-and-conditions="invoice.termsAndConditions" />

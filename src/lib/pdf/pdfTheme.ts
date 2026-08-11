@@ -33,6 +33,24 @@ export const PDF_THEME = {
   },
 }
 
+/** jsPDF has no letter-spacing/tracking option — spacing out characters with
+ * regular spaces is a common low-tech approximation of tracked uppercase
+ * type, used by the "minimal" template to echo the web preview's
+ * `tracking-[0.2em] uppercase` treatment. */
+export function trackedUpper(text: string): string {
+  return text.toUpperCase().split('').join(' ')
+}
+
+/** Mixes an RGB color toward white — used to derive a light background tint
+ * (the PDF equivalent of the web preview's `bg-accent-soft` / `/50` opacity
+ * tricks, which have no direct jsPDF equivalent) from the invoice's own
+ * theme color, so the "bold" template's tinted blocks always match whatever
+ * accent color is picked rather than a fixed hue. */
+export function lighten([r, g, b]: [number, number, number], amount: number): [number, number, number] {
+  const mix = (channel: number) => Math.round(channel + (255 - channel) * amount)
+  return [mix(r), mix(g), mix(b)]
+}
+
 const HEX_COLOR_PATTERN = /^#([0-9a-f]{6})$/i
 
 /** Parses a "#rrggbb" hex color (the format stored on Invoice.themeColor)

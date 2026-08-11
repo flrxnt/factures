@@ -7,6 +7,7 @@ export const DEFAULT_LOCALE = 'fr-FR'
 export const DEFAULT_TAX_RATE_PERCENT = 0
 export const MAX_INVOICES = 50
 export const DEFAULT_THEME_COLOR = '#a24a2c'
+export const DEFAULT_TEMPLATE = 'editorial'
 export const UNTITLED_INVOICE_NAME = 'Facture sans titre'
 
 /** Curated preset swatches for the per-invoice theme picker — muted hues
@@ -113,6 +114,7 @@ export function createEmptyInvoice(): Invoice {
     visibleSections: { ...DEFAULT_VISIBLE_SECTIONS },
     manualSubtotal: null,
     themeColor: DEFAULT_THEME_COLOR,
+    template: DEFAULT_TEMPLATE,
     createdAt: now,
     updatedAt: now,
   }

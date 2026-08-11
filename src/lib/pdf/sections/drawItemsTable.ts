@@ -6,7 +6,7 @@ import { PDF_PAGE, PDF_CONTENT_WIDTH, buildItemsColumns } from '../../../config/
 import { lineTotal } from '../../../lib/calculations'
 import { formatCurrency } from '../../../composables/useCurrencyFormat'
 import { htmlToPlainText } from '../../../lib/richText'
-import { PDF_THEME } from '../pdfTheme'
+import { PDF_THEME, hexToRgb, lighten } from '../pdfTheme'
 
 export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): void {
   const columns = buildItemsColumns({
@@ -16,6 +16,7 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
     showLineTotal: invoice.visibleSections.lineTotalColumn,
   })
   const { currency, locale } = invoice.meta
+  const { template } = invoice
 
   const head = [columns.map((c) => c.labelFr.toUpperCase())]
   const body = invoice.items.map((item) =>
@@ -42,6 +43,13 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
     columnStyles[i] = { cellWidth: col.width * PDF_CONTENT_WIDTH, halign: col.align }
   })
 
+  if (template === 'minimal') {
+    doc.setDrawColor(...PDF_THEME.colors.hairline)
+    doc.setLineWidth(0.2)
+    doc.line(PDF_PAGE.marginX, cursor.y, PDF_PAGE.marginX + PDF_CONTENT_WIDTH, cursor.y)
+    cursor.advance(2)
+  }
+
   autoTable(doc, {
     head,
     body,
@@ -52,22 +60,30 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
       fontSize: PDF_THEME.font.sizeSmall,
       textColor: PDF_THEME.colors.inkSoft,
       lineColor: PDF_THEME.colors.hairline,
-      lineWidth: 0.15,
-      cellPadding: { top: 2.5, bottom: 2.5, left: 0, right: 0 },
+      lineWidth: template === 'minimal' ? 0 : 0.15,
+      cellPadding: template === 'bold' ? { top: 2.5, bottom: 2.5, left: 2, right: 2 } : { top: 2.5, bottom: 2.5, left: 0, right: 0 },
     },
-    headStyles: {
-      fillColor: false,
-      textColor: PDF_THEME.colors.muted,
-      fontStyle: 'bold',
-      fontSize: PDF_THEME.font.sizeSectionLabel,
-      lineWidth: { bottom: 0.3 },
-      lineColor: PDF_THEME.colors.hairlineStrong,
-    },
+    headStyles:
+      template === 'bold'
+        ? {
+            fillColor: lighten(hexToRgb(invoice.themeColor), 0.82),
+            textColor: PDF_THEME.colors.ink,
+            fontStyle: 'bold',
+            fontSize: PDF_THEME.font.sizeSectionLabel,
+          }
+        : {
+            fillColor: false,
+            textColor: PDF_THEME.colors.muted,
+            fontStyle: 'bold',
+            fontSize: PDF_THEME.font.sizeSectionLabel,
+            lineWidth: template === 'minimal' ? 0 : { bottom: 0.3 },
+            lineColor: PDF_THEME.colors.hairlineStrong,
+          },
     bodyStyles: {
-      lineWidth: { bottom: 0.15 },
+      lineWidth: template === 'minimal' ? 0 : { bottom: 0.15 },
     },
     columnStyles,
-    theme: 'plain',
+    theme: template === 'bold' ? 'grid' : 'plain',
   })
 
   const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY
