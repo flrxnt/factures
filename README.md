@@ -55,8 +55,8 @@
 ### Développement (web)
 
 ```bash
-git clone https://github.com/<votre-compte>/FLOFACTURES.git
-cd FLOFACTURES
+git clone https://github.com/flrxnt/factures.git
+cd factures
 npm install
 npm run dev
 ```
