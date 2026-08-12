@@ -7,6 +7,7 @@ import { STATUS_ORDER, getStatusDescriptor } from '../../config/statuses'
 import { exportInvoicesAsCsv, exportInvoicesAsJson } from '../../lib/exportData'
 import { useAppDialog } from '../../composables/useAppDialog'
 import { useEmailCompose } from '../../composables/useEmailCompose'
+import { usePaymentVerification } from '../../composables/usePaymentVerification'
 import { X } from '@lucide/vue'
 import InvoiceCard from './InvoiceCard.vue'
 import InvoiceListRow from './InvoiceListRow.vue'
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 const { invoices, remove, rename, duplicate, setStatus, importInvoices } = useInvoiceCollection()
 const { confirm: confirmDialog, alert: alertDialog } = useAppDialog()
 const { openCompose } = useEmailCompose()
+const { verifyPayment } = usePaymentVerification()
 
 const importInputRef = ref<HTMLInputElement | null>(null)
 
@@ -175,6 +177,7 @@ async function handleRemove(id: string, name: string) {
         @duplicate="duplicate(invoice.id)"
         @remove="handleRemove(invoice.id, invoice.name)"
         @send-email="openCompose(invoice)"
+        @verify-payment="verifyPayment(invoice)"
         @status-change="(status) => setStatus(invoice.id, status)"
       />
     </div>
@@ -189,6 +192,7 @@ async function handleRemove(id: string, name: string) {
         @duplicate="duplicate(invoice.id)"
         @remove="handleRemove(invoice.id, invoice.name)"
         @send-email="openCompose(invoice)"
+        @verify-payment="verifyPayment(invoice)"
         @status-change="(status) => setStatus(invoice.id, status)"
       />
     </ul>

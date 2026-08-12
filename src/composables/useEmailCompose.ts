@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { computed, reactive } from 'vue'
 import type { Invoice } from '../types/invoice'
 import { useAppSettings } from './useAppSettings'
 import { useAppDialog } from './useAppDialog'
@@ -29,15 +29,17 @@ const composeState = reactive<ComposeState>({
   sending: false,
 })
 
-async function openCompose(invoice: Invoice) {
-  const { alert } = useAppDialog()
-  if (!invoice.client.email.trim()) {
-    await alert("Cette facture n'a pas d'adresse e-mail client. Ajoutez-en une dans les informations du client.", {
-      title: 'E-mail manquant',
-    })
-    return
-  }
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Exposed so EmailComposeDialog.vue can disable the Send button — the
+// recipient may be typed in the dialog itself when the invoice has no
+// client email on file, so this can't be checked only at openCompose() time.
+const canSend = computed(() => EMAIL_PATTERN.test(composeState.toEmail.trim()))
+
+// No blocking check here anymore — if the invoice has no client email, the
+// dialog just opens with an empty "Destinataire" field for the user to fill
+// in themselves, instead of refusing to open at all.
+function openCompose(invoice: Invoice) {
   const { settings } = useAppSettings()
   const totals = computeInvoiceTotals(invoice)
   const tokens = {
@@ -63,7 +65,7 @@ async function confirmSend() {
   const { settings } = useAppSettings()
   const { alert } = useAppDialog()
   const invoice = composeState.invoice
-  if (!invoice) return
+  if (!invoice || !canSend.value) return
 
   composeState.sending = true
   try {
@@ -90,5 +92,5 @@ async function confirmSend() {
 }
 
 export function useEmailCompose() {
-  return { composeState, openCompose, cancelCompose, confirmSend }
+  return { composeState, canSend, openCompose, cancelCompose, confirmSend }
 }

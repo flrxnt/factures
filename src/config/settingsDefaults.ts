@@ -55,6 +55,7 @@ export function createDefaultAppSettings(): AppSettings {
       activeProvider: null,
       stripe: { enabled: false },
       paydunya: { enabled: false, masterKey: '', publicKey: '', mode: 'test' },
+      paypal: { enabled: false, clientId: '', mode: 'sandbox' },
     },
   }
 }

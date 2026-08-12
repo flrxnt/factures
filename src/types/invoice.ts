@@ -116,6 +116,13 @@ export interface Invoice {
   /** External payment page URL — pasted manually or generated via a
    * configured provider (Stripe/PayDunya). Empty string if none. */
   paymentLink: string
+  /** Which provider generated paymentLink — null if pasted manually (or
+   * empty), since a manual link has no reference to check status against. */
+  paymentProvider: 'stripe' | 'paydunya' | 'paypal' | null
+  /** Provider-specific identifier for the generated payment (Stripe checkout
+   * session id / PayDunya invoice token) — used to verify payment status
+   * later. Empty string when paymentProvider is null. */
+  paymentReference: string
   signatureLabel: string
   /** Hand-drawn (canvas) or uploaded signature image, data URL — empty string
    * if none. Same storage regardless of how it was captured. */

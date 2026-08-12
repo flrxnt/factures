@@ -20,6 +20,7 @@ function mergeWithDefaults(stored: Partial<AppSettings> | null): AppSettings {
       ...(stored.payments ?? {}),
       stripe: { ...defaults.payments.stripe, ...(stored.payments?.stripe ?? {}) },
       paydunya: { ...defaults.payments.paydunya, ...(stored.payments?.paydunya ?? {}) },
+      paypal: { ...defaults.payments.paypal, ...(stored.payments?.paypal ?? {}) },
     },
   }
 }

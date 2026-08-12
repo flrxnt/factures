@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { isTauri } from '@tauri-apps/api/core'
-import { Pencil, Copy, Mail, Trash2 } from '@lucide/vue'
+import { Pencil, Copy, Mail, CircleCheck, Trash2 } from '@lucide/vue'
 import type { Invoice, InvoiceStatus } from '../../types/invoice'
 import { computeInvoiceTotals } from '../../lib/calculations'
 import { formatCurrency } from '../../composables/useCurrencyFormat'
@@ -19,6 +19,7 @@ const emit = defineEmits<{
   duplicate: []
   remove: []
   'send-email': []
+  'verify-payment': []
   'status-change': [status: InvoiceStatus]
 }>()
 
@@ -79,6 +80,14 @@ function commitRename() {
           @click.stop="$emit('send-email')"
         >
           <Mail class="h-4 w-4" /> Envoyer par e-mail
+        </button>
+        <button
+          v-if="isTauriEnv && invoice.paymentProvider"
+          type="button"
+          class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-paper-dim"
+          @click.stop="$emit('verify-payment')"
+        >
+          <CircleCheck class="h-4 w-4" /> Vérifier le paiement
         </button>
         <button
           type="button"

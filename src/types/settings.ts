@@ -23,8 +23,9 @@ export interface InvoiceDefaults {
   themeColor: string
 }
 
-export type PaymentProviderKind = 'stripe' | 'paydunya'
+export type PaymentProviderKind = 'stripe' | 'paydunya' | 'paypal'
 export type PaymentMode = 'test' | 'live'
+export type PayPalMode = 'sandbox' | 'live'
 
 export interface StripeProviderSettings {
   enabled: boolean
@@ -37,10 +38,17 @@ export interface PayDunyaProviderSettings {
   mode: PaymentMode
 }
 
+export interface PayPalProviderSettings {
+  enabled: boolean
+  clientId: string
+  mode: PayPalMode
+}
+
 export interface PaymentSettings {
   activeProvider: PaymentProviderKind | null
   stripe: StripeProviderSettings
   paydunya: PayDunyaProviderSettings
+  paypal: PayPalProviderSettings
 }
 
 export interface AppSettings {

@@ -109,6 +109,8 @@ export function createEmptyInvoice(): Invoice {
       otherInstructions: '',
     },
     paymentLink: '',
+    paymentProvider: null,
+    paymentReference: '',
     signatureLabel: '',
     signatureImageDataUrl: '',
     footerNoteLeft: '',

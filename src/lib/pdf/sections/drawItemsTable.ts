@@ -6,6 +6,8 @@ import { PDF_PAGE, PDF_CONTENT_WIDTH, buildItemsColumns } from '../../../config/
 import { lineTotal } from '../../../lib/calculations'
 import { formatCurrency } from '../../../composables/useCurrencyFormat'
 import { htmlToPlainText } from '../../../lib/richText'
+import type { RichLine } from '../../../lib/richText'
+import { htmlToWrappedRichLines, hasRichFormatting, drawRichLines } from '../richTextPdf'
 import { PDF_THEME, hexToRgb, lighten } from '../pdfTheme'
 
 export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): void {
@@ -17,6 +19,7 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
   })
   const { currency, locale } = invoice.meta
   const { template } = invoice
+  const descriptionColumnIndex = columns.findIndex((c) => c.key === 'description')
 
   const head = [columns.map((c) => c.labelFr.toUpperCase())]
   const body = invoice.items.map((item) =>
@@ -49,6 +52,13 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
     doc.line(PDF_PAGE.marginX, cursor.y, PDF_PAGE.marginX + PDF_CONTENT_WIDTH, cursor.y)
     cursor.advance(2)
   }
+
+  // jspdf-autotable only ever draws a single plain-text run per cell, so
+  // bold/italic marks in a description would otherwise be silently dropped.
+  // willDrawCell fires after row heights are already locked in, so blanking
+  // the cell's text here is safe — it can't retroactively shrink the row —
+  // and didDrawCell then paints the real bold/italic runs on top.
+  const richLinesByRow = new Map<number, RichLine[]>()
 
   autoTable(doc, {
     head,
@@ -84,6 +94,25 @@ export function drawItemsTable(doc: jsPDF, invoice: Invoice, cursor: PdfCursor):
     },
     columnStyles,
     theme: template === 'bold' ? 'grid' : 'plain',
+    willDrawCell: (data) => {
+      if (data.section !== 'body' || data.column.index !== descriptionColumnIndex) return
+      const item = invoice.items[data.row.index]
+      if (!item) return
+      const maxWidth = data.cell.width - data.cell.padding('horizontal')
+      const wrapped = htmlToWrappedRichLines(doc, item.description, maxWidth, PDF_THEME.font.sizeSmall)
+      if (!hasRichFormatting(wrapped)) return
+      richLinesByRow.set(data.row.index, wrapped)
+      data.cell.text = ['']
+    },
+    didDrawCell: (data) => {
+      if (data.section !== 'body' || data.column.index !== descriptionColumnIndex) return
+      const wrapped = richLinesByRow.get(data.row.index)
+      if (!wrapped) return
+      doc.setTextColor(...PDF_THEME.colors.inkSoft)
+      const pos = data.cell.getTextPos()
+      drawRichLines(doc, wrapped, pos.x, pos.y, PDF_THEME.font.body, PDF_THEME.font.sizeSmall)
+      richLinesByRow.delete(data.row.index)
+    },
   })
 
   const finalY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY

@@ -6,7 +6,7 @@ import { useAppSettings } from '../../composables/useAppSettings'
 import { useAppDialog } from '../../composables/useAppDialog'
 import { useAppNavigation } from '../../composables/useAppNavigation'
 import { computeInvoiceTotals } from '../../lib/calculations'
-import { createStripePaymentLink, createPayDunyaPaymentLink } from '../../lib/paymentProviders'
+import { createStripePaymentLink, createPayDunyaPaymentLink, createPayPalPaymentLink } from '../../lib/paymentProviders'
 import BaseInput from '../ui/BaseInput.vue'
 import BaseButton from '../ui/BaseButton.vue'
 
@@ -21,7 +21,19 @@ const { openSettings } = useAppNavigation()
 
 const generating = ref(false)
 
-const PROVIDER_LABELS: Record<string, string> = { stripe: 'Stripe', paydunya: 'PayDunya' }
+const PROVIDER_LABELS: Record<string, string> = { stripe: 'Stripe', paydunya: 'PayDunya', paypal: 'PayPal' }
+
+// Editing the URL by hand invalidates the stored provider reference — it
+// would otherwise keep pointing at a stale transaction that no longer
+// matches what's displayed, and "Vérifier le paiement" would check the
+// wrong thing.
+function handleManualEdit(value: string) {
+  props.invoice.paymentLink = value
+  if (props.invoice.paymentProvider) {
+    props.invoice.paymentProvider = null
+    props.invoice.paymentReference = ''
+  }
+}
 
 async function handleGenerate() {
   const provider = settings.payments.activeProvider
@@ -37,12 +49,16 @@ async function handleGenerate() {
       storeName: props.invoice.seller.name,
     }
 
-    const url =
+    const result =
       provider === 'stripe'
         ? await createStripePaymentLink(params)
-        : await createPayDunyaPaymentLink({ masterKey: settings.payments.paydunya.masterKey, publicKey: settings.payments.paydunya.publicKey }, params)
+        : provider === 'paydunya'
+          ? await createPayDunyaPaymentLink({ masterKey: settings.payments.paydunya.masterKey, publicKey: settings.payments.paydunya.publicKey }, params)
+          : await createPayPalPaymentLink({ clientId: settings.payments.paypal.clientId, mode: settings.payments.paypal.mode }, params)
 
-    props.invoice.paymentLink = url
+    props.invoice.paymentLink = result.url
+    props.invoice.paymentProvider = provider
+    props.invoice.paymentReference = result.reference
   } catch (error) {
     await alert(`Impossible de générer le lien de paiement : ${error}`, { title: 'Erreur' })
   } finally {
@@ -54,7 +70,7 @@ async function handleGenerate() {
 <template>
   <fieldset class="space-y-4">
     <legend class="font-display text-lg text-ink">Lien de paiement</legend>
-    <BaseInput v-model="invoice.paymentLink" label="URL de paiement" placeholder="https://…" />
+    <BaseInput :model-value="invoice.paymentLink" label="URL de paiement" placeholder="https://…" @update:model-value="(v) => handleManualEdit(String(v))" />
 
     <div v-if="isTauriEnv">
       <BaseButton v-if="settings.payments.activeProvider" variant="secondary" :disabled="generating" @click="handleGenerate">

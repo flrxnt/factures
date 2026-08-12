@@ -16,6 +16,10 @@ pub fn run() {
       commands::payments::delete_payment_secret,
       commands::payments::create_stripe_payment_link,
       commands::payments::create_paydunya_payment_link,
+      commands::payments::check_stripe_payment_status,
+      commands::payments::check_paydunya_payment_status,
+      commands::payments::create_paypal_payment_link,
+      commands::payments::check_paypal_payment_status,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

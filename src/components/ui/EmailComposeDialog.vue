@@ -4,7 +4,7 @@ import BaseInput from './BaseInput.vue'
 import BaseTextarea from './BaseTextarea.vue'
 import BaseButton from './BaseButton.vue'
 
-const { composeState, cancelCompose, confirmSend } = useEmailCompose()
+const { composeState, canSend, cancelCompose, confirmSend } = useEmailCompose()
 </script>
 
 <template>
@@ -13,7 +13,10 @@ const { composeState, cancelCompose, confirmSend } = useEmailCompose()
       <div class="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl" role="dialog" aria-modal="true">
         <p class="font-display text-lg text-ink">Envoyer par e-mail</p>
         <div class="mt-4 space-y-4">
-          <BaseInput v-model="composeState.toEmail" type="email" label="Destinataire" />
+          <div>
+            <BaseInput v-model="composeState.toEmail" type="email" label="Destinataire" placeholder="client@exemple.com" />
+            <p v-if="composeState.toEmail && !canSend" class="mt-1 text-xs text-accent-dark">Adresse e-mail invalide.</p>
+          </div>
           <BaseInput v-model="composeState.subject" label="Objet" />
           <BaseTextarea v-model="composeState.body" label="Message" :rows="8" />
         </div>
@@ -26,7 +29,7 @@ const { composeState, cancelCompose, confirmSend } = useEmailCompose()
           >
             Annuler
           </button>
-          <BaseButton variant="primary" :disabled="composeState.sending" @click="confirmSend">
+          <BaseButton variant="primary" :disabled="composeState.sending || !canSend" @click="confirmSend">
             {{ composeState.sending ? 'Envoi…' : 'Envoyer' }}
           </BaseButton>
         </div>

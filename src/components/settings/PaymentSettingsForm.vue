@@ -17,6 +17,7 @@ const ACTIVE_PROVIDER_OPTIONS = [
   { value: '', label: 'Aucun' },
   { value: 'stripe', label: 'Stripe' },
   { value: 'paydunya', label: 'PayDunya' },
+  { value: 'paypal', label: 'PayPal' },
 ]
 
 function setActiveProvider(value: string) {
@@ -25,6 +26,11 @@ function setActiveProvider(value: string) {
 
 const MODE_OPTIONS = [
   { value: 'test', label: 'Test' },
+  { value: 'live', label: 'Production' },
+]
+
+const PAYPAL_MODE_OPTIONS = [
+  { value: 'sandbox', label: 'Sandbox' },
   { value: 'live', label: 'Production' },
 ]
 
@@ -42,10 +48,17 @@ const paydunyaTokenDraft = ref('')
 const hasPaydunyaToken = ref(false)
 const savingPaydunyaToken = ref(false)
 
+// PayPal — a single secret (the client secret) alongside the non-secret
+// client ID and mode, which live directly in settings.
+const paypalSecretDraft = ref('')
+const hasPaypalSecret = ref(false)
+const savingPaypalSecret = ref(false)
+
 onMounted(async () => {
   hasStripeKey.value = await hasPaymentSecret('stripe', 'secret_key')
   hasPaydunyaPrivateKey.value = await hasPaymentSecret('paydunya', 'private_key')
   hasPaydunyaToken.value = await hasPaymentSecret('paydunya', 'token')
+  hasPaypalSecret.value = await hasPaymentSecret('paypal', 'client_secret')
 })
 
 async function handleSaveStripeKey() {
@@ -91,6 +104,29 @@ async function handleDeletePaydunyaPrivateKey() {
     hasPaydunyaPrivateKey.value = false
   } catch (error) {
     await alert(`Impossible de supprimer la clé : ${error}`, { title: 'Erreur' })
+  }
+}
+
+async function handleSavePaypalSecret() {
+  if (!paypalSecretDraft.value) return
+  savingPaypalSecret.value = true
+  try {
+    await savePaymentSecret('paypal', 'client_secret', paypalSecretDraft.value)
+    paypalSecretDraft.value = ''
+    hasPaypalSecret.value = true
+  } catch (error) {
+    await alert(`Impossible d'enregistrer le secret : ${error}`, { title: 'Erreur' })
+  } finally {
+    savingPaypalSecret.value = false
+  }
+}
+
+async function handleDeletePaypalSecret() {
+  try {
+    await deletePaymentSecret('paypal', 'client_secret')
+    hasPaypalSecret.value = false
+  } catch (error) {
+    await alert(`Impossible de supprimer le secret : ${error}`, { title: 'Erreur' })
   }
 }
 
@@ -179,6 +215,25 @@ async function handleDeletePaydunyaToken() {
             Supprimer
           </button>
           <p class="text-xs text-muted">{{ hasPaydunyaToken ? 'Jeton enregistré ✓' : 'Aucun jeton enregistré' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-4 border-t border-hairline pt-6">
+      <BaseToggle v-model="payments.paypal.enabled" label="Activer PayPal" />
+      <BaseInput v-model="payments.paypal.clientId" label="Client ID" />
+      <BaseSelect v-model="payments.paypal.mode" label="Mode" :options="PAYPAL_MODE_OPTIONS" />
+
+      <div class="space-y-2">
+        <BaseInput v-model="paypalSecretDraft" type="password" label="Client Secret" />
+        <div class="flex items-center gap-3">
+          <BaseButton variant="secondary" :disabled="!paypalSecretDraft || savingPaypalSecret" @click="handleSavePaypalSecret">
+            {{ savingPaypalSecret ? 'Enregistrement…' : 'Enregistrer le secret' }}
+          </BaseButton>
+          <button v-if="hasPaypalSecret" type="button" class="text-xs font-medium text-muted hover:text-accent-dark" @click="handleDeletePaypalSecret">
+            Supprimer
+          </button>
+          <p class="text-xs text-muted">{{ hasPaypalSecret ? 'Secret enregistré ✓' : 'Aucun secret enregistré' }}</p>
         </div>
       </div>
     </div>

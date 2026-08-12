@@ -15,7 +15,7 @@
 
 ## À propos
 
-**Facture.** est une application de facturation pensée pour les indépendants et petites structures : on remplit une facture, on l'ajuste visuellement, on l'exporte en PDF. Aucune donnée ne quitte jamais l'appareil — tout est stocké en local (`localStorage`), il n'y a ni compte, ni serveur, ni base de données.
+**Facture.** est une application de facturation pensée pour les indépendants et petites structures : on remplit une facture, on l'ajuste visuellement, on l'exporte en PDF. Tout est stocké en local (`localStorage`), il n'y a ni compte, ni serveur, ni base de données — les seuls appels externes sont ceux que vous configurez vous-même (envoi d'e-mail SMTP, liens de paiement Stripe/PayDunya/PayPal).
 
 ## Fonctionnalités
 
@@ -29,6 +29,9 @@
 - **Tableau de bord** — recherche, filtres par statut (brouillon, envoyée, payée, en retard, annulée), vues grille/liste.
 - **Dupliquer, renommer, suivre le statut, annuler/rétablir** chaque facture.
 - **Export / import** de toutes les factures en JSON (sauvegarde complète) ou CSV (tableur).
+- **Paramètres** — thème clair/sombre/système, préférences par défaut pour les nouvelles factures (devise, langue, taux de TVA, mise en page).
+- **Envoi par e-mail** directement depuis l'app via votre propre compte SMTP (app de bureau), avec objet/corps personnalisables et pièce jointe PDF.
+- **Liens de paiement en ligne** (Stripe, PayDunya, PayPal) générés par facture, avec vérification du statut de paiement en un clic (met à jour automatiquement le statut de la facture).
 - **Application de bureau** (macOS, avec support Windows/Linux via Tauri) en plus de la version web.
 
 ## Stack technique
@@ -38,7 +41,8 @@
 - [Tailwind CSS](https://tailwindcss.com/) v4
 - [jsPDF](https://github.com/parallax/jsPDF) + [jspdf-autotable](https://github.com/simonbengtsson/jsPDF-AutoTable) pour la génération PDF
 - [Tiptap](https://tiptap.dev/) pour l'édition de texte riche
-- [Tauri](https://tauri.app/) v2 pour l'application de bureau
+- [Lucide](https://lucide.dev/) pour les icônes
+- [Tauri](https://tauri.app/) v2 pour l'application de bureau (SMTP via `lettre`, paiements via `reqwest`, secrets via `keyring`)
 - [Vitest](https://vitest.dev/) pour les tests
 
 ## Installation
@@ -111,7 +115,7 @@ npx vitest run
 
 ## Confidentialité
 
-Aucune donnée saisie (informations client, montants, signature) ne transite par un serveur : tout reste dans le stockage local du navigateur ou de l'application. Le bouton *Exporter (JSON)* permet de sauvegarder l'ensemble de ses factures pour les transférer ou les archiver.
+Aucune donnée saisie (informations client, montants, signature) ne transite par un serveur tiers : tout reste dans le stockage local du navigateur ou de l'application. Seules exceptions, et uniquement si vous les configurez : l'envoi d'e-mail (via votre propre serveur SMTP) et la génération de liens de paiement (via l'API de Stripe/PayDunya/PayPal) — les identifiants correspondants sont alors stockés dans le trousseau macOS, jamais en clair. Le bouton *Exporter (JSON)* permet de sauvegarder l'ensemble de ses factures pour les transférer ou les archiver.
 
 ## Licence
 
