@@ -9,13 +9,14 @@ import { DOCUMENT_TYPE_ORDER } from '../../config/documentTypes'
 import { exportInvoicesAsCsv, exportInvoicesAsJson } from '../../lib/exportData'
 import { useAppDialog } from '../../composables/useAppDialog'
 import { useEmailCompose } from '../../composables/useEmailCompose'
-import { X } from '@lucide/vue'
+import { X, Download } from '@lucide/vue'
 import InvoiceCard from './InvoiceCard.vue'
 import InvoiceListRow from './InvoiceListRow.vue'
 import NewInvoiceCard from './NewInvoiceCard.vue'
 import ViewModeToggle from './ViewModeToggle.vue'
 import BaseButton from '../ui/BaseButton.vue'
 import LoadingState from '../ui/LoadingState.vue'
+import ActionsMenu from '../ui/ActionsMenu.vue'
 
 const emit = defineEmits<{
   create: [docType?: DocumentType]
@@ -76,6 +77,13 @@ function normalize(value: string): string {
     .replace(/[̀-ͯ]/g, '') // strip accents so "café" matches "cafe"
 }
 
+// Only surface filter pills that would actually narrow the list — a status
+// or type with zero documents is dead weight in the toolbar, not a useful
+// choice, and disappears again the moment it would apply.
+const visibleStatuses = computed(() => STATUS_ORDER.filter((status) => invoices.value.some((i) => i.status === status.value)))
+const visibleDocTypes = computed(() => DOCUMENT_TYPE_ORDER.filter((docType) => invoices.value.some((i) => i.docType === docType.value)))
+const showDocTypeFilter = computed(() => isTauriEnv && visibleDocTypes.value.length > 1)
+
 const filteredInvoices = computed(() => {
   let result = invoices.value
   if (statusFilter.value !== 'all') {
@@ -104,7 +112,7 @@ async function handleRemove(id: string, name: string) {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+  <div class="px-4 py-8 sm:px-6">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
       <h2 class="font-display text-2xl text-ink">{{ isTauriEnv ? 'Mes documents' : 'Mes factures' }}</h2>
       <div class="flex items-center gap-3">
@@ -143,52 +151,59 @@ async function handleRemove(id: string, name: string) {
         </label>
       </div>
 
-      <div v-if="isTauriEnv && invoices.length > 0" class="mb-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
-          :class="docTypeFilter === 'all' ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
-          @click="docTypeFilter = 'all'"
-        >
-          Tous types
-        </button>
-        <button
-          v-for="docType in DOCUMENT_TYPE_ORDER"
-          :key="docType.value"
-          type="button"
-          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
-          :class="docTypeFilter === docType.value ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
-          @click="docTypeFilter = docType.value"
-        >
-          {{ docType.labelFr }} ({{ invoices.filter((i) => i.docType === docType.value).length }})
-        </button>
-      </div>
-
       <div v-if="invoices.length > 0" class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap gap-2">
-          <button
-            type="button"
-            class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
-            :class="statusFilter === 'all' ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
-            @click="statusFilter = 'all'"
-          >
-            Tous ({{ invoices.length }})
-          </button>
-          <button
-            v-for="status in STATUS_ORDER"
-            :key="status.value"
-            type="button"
-            class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
-            :style="statusFilter === status.value ? { borderColor: status.color, backgroundColor: status.color, color: '#fffdf8' } : { borderColor: status.color + '55', color: status.color }"
-            @click="statusFilter = status.value"
-          >
-            {{ status.labelFr }} ({{ invoices.filter((i) => i.status === status.value).length }})
-          </button>
+        <div class="flex flex-wrap items-center gap-3">
+          <div v-if="showDocTypeFilter" class="inline-flex items-center gap-1 rounded-full border border-hairline-strong p-1">
+            <button
+              type="button"
+              class="rounded-full px-2.5 py-1 text-xs font-medium tracking-wide uppercase transition"
+              :class="docTypeFilter === 'all' ? 'bg-ink text-paper' : 'text-muted hover:text-ink'"
+              @click="docTypeFilter = 'all'"
+            >
+              Tous
+            </button>
+            <button
+              v-for="docType in visibleDocTypes"
+              :key="docType.value"
+              type="button"
+              class="rounded-full px-2.5 py-1 text-xs font-medium tracking-wide uppercase transition"
+              :class="docTypeFilter === docType.value ? 'bg-ink text-paper' : 'text-muted hover:text-ink'"
+              @click="docTypeFilter = docType.value"
+            >
+              {{ docType.labelFr }}
+            </button>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
+              :class="statusFilter === 'all' ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
+              @click="statusFilter = 'all'"
+            >
+              Tous ({{ invoices.length }})
+            </button>
+            <button
+              v-for="status in visibleStatuses"
+              :key="status.value"
+              type="button"
+              class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
+              :style="statusFilter === status.value ? { borderColor: status.color, backgroundColor: status.color, color: '#fffdf8' } : { borderColor: status.color + '55', color: status.color }"
+              @click="statusFilter = status.value"
+            >
+              {{ status.labelFr }} ({{ invoices.filter((i) => i.status === status.value).length }})
+            </button>
+          </div>
         </div>
-        <div class="flex gap-3 text-sm">
-          <button type="button" class="text-muted hover:text-ink" @click="exportInvoicesAsJson(invoices)">Exporter (JSON)</button>
-          <button type="button" class="text-muted hover:text-ink" @click="exportInvoicesAsCsv(invoices)">Exporter (CSV)</button>
-        </div>
+
+        <ActionsMenu :icon="Download" title="Exporter">
+          <button type="button" class="flex w-full items-center px-3 py-2 text-left text-sm text-ink hover:bg-paper-dim" @click="exportInvoicesAsJson(invoices)">
+            Exporter (JSON)
+          </button>
+          <button type="button" class="flex w-full items-center px-3 py-2 text-left text-sm text-ink hover:bg-paper-dim" @click="exportInvoicesAsCsv(invoices)">
+            Exporter (CSV)
+          </button>
+        </ActionsMenu>
       </div>
 
       <p v-if="invoices.length === 0" class="rounded-2xl border border-dashed border-hairline-strong py-16 text-center text-sm text-muted">

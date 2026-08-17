@@ -21,7 +21,7 @@ const SECTION_META: Record<SettingsTab, { title: string; description: string }> 
 </script>
 
 <template>
-  <div class="mx-auto flex max-w-4xl flex-col gap-6 px-4 py-8 sm:flex-row sm:px-6">
+  <div class="flex flex-col gap-6 px-4 py-8 sm:flex-row sm:px-6">
     <SettingsSidebar v-model="activeTab" :show-email="isTauriEnv" :show-paiements="isTauriEnv" />
 
     <div class="min-w-0 flex-1">

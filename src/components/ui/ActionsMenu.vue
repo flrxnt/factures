@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import type { Component } from 'vue'
 import { EllipsisVertical } from '@lucide/vue'
+
+const props = defineProps<{
+  icon?: Component
+  title?: string
+}>()
 
 const MENU_WIDTH = 192 // matches w-48
 
@@ -58,11 +64,11 @@ onUnmounted(() => {
   <button
     ref="triggerEl"
     type="button"
-    title="Actions"
+    :title="props.title ?? 'Actions'"
     class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-paper-dim hover:text-ink"
     @click="toggle"
   >
-    <EllipsisVertical class="h-4 w-4" />
+    <component :is="props.icon ?? EllipsisVertical" class="h-4 w-4" />
   </button>
   <Teleport to="body">
     <div

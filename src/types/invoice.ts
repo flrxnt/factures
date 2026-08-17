@@ -69,6 +69,11 @@ export interface LineItem {
   quantity: number
   unitPrice: number
   taxRatePercent: number
+  /** Set when this line was filled in from the product/service catalog
+   * (desktop only) — lets the autocomplete show "already linked" state and
+   * would let a future stock module know which product a sale line moves.
+   * Undefined for a manually-typed line, as almost all lines are today. */
+  productId?: string
 }
 
 export interface Discount {

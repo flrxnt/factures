@@ -26,6 +26,9 @@ pub fn run() {
       commands::documents::list_documents,
       commands::documents::remove_document,
       commands::documents::create_document_link,
+      commands::products::save_product,
+      commands::products::list_products,
+      commands::products::remove_product,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

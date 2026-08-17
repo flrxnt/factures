@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
+import { isTauri } from '@tauri-apps/api/core'
 import type { DocumentType, InvoiceStatus } from './types/invoice'
 import { useInvoiceStore } from './composables/useInvoiceStore'
 import { useInvoiceCollection } from './composables/useInvoiceCollection'
@@ -8,18 +9,22 @@ import { usePdfExport } from './composables/usePdfExport'
 import { useUndoHistory } from './composables/useUndoHistory'
 import { useAppTheme } from './composables/useAppTheme'
 import { useEmailCompose } from './composables/useEmailCompose'
+import AppSidebar from './components/layout/AppSidebar.vue'
 import AppHeader from './components/layout/AppHeader.vue'
 import TwoPaneLayout from './components/layout/TwoPaneLayout.vue'
 import InvoiceForm from './components/form/InvoiceForm.vue'
 import InvoicePreview from './components/preview/InvoicePreview.vue'
 import DashboardView from './components/dashboard/DashboardView.vue'
 import SettingsView from './components/settings/SettingsView.vue'
+import CatalogView from './components/catalog/CatalogView.vue'
 import AppDialog from './components/ui/AppDialog.vue'
 import EmailComposeDialog from './components/ui/EmailComposeDialog.vue'
 
+const isTauriEnv = isTauri()
+
 const { invoice, replaceInvoice } = useInvoiceStore()
 const { create, cloneForEditing, useAutosave } = useInvoiceCollection()
-const { view, openDashboard, openEditor, openSettings } = useAppNavigation()
+const { view, openDashboard, openEditor, openSettings, openCatalog } = useAppNavigation()
 const { exportPdf } = usePdfExport()
 const { undo, redo, reset: resetUndoHistory, canUndo, canRedo } = useUndoHistory(invoice)
 const { start: startTheme, stop: stopTheme } = useAppTheme()
@@ -84,39 +89,44 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-paper font-sans text-ink">
-    <AppHeader
-      :view="view"
-      :invoice-name="invoiceName"
-      :invoice-status="invoiceStatus"
-      :can-undo="canUndo"
-      :can-redo="canRedo"
-      @back="openDashboard"
-      @rename="handleRename"
-      @status-change="handleStatusChange"
-      @undo="undo"
-      @redo="redo"
-      @export="exportPdf(invoice)"
-      @open-settings="openSettings"
-      @send-email="openCompose(invoice)"
-    />
+  <div class="flex min-h-screen bg-paper font-sans text-ink">
+    <AppSidebar :view="view" :show-catalog="isTauriEnv" @open-dashboard="openDashboard" @open-catalog="openCatalog" @open-settings="openSettings" />
 
-    <Transition name="view-fade" mode="out-in">
-      <DashboardView v-if="view === 'dashboard'" key="dashboard" @create="handleCreate" @open="handleOpen" />
+    <div class="flex min-w-0 flex-1 flex-col">
+      <AppHeader
+        v-if="view === 'editor'"
+        :invoice-name="invoiceName"
+        :invoice-status="invoiceStatus"
+        :can-undo="canUndo"
+        :can-redo="canRedo"
+        @back="openDashboard"
+        @rename="handleRename"
+        @status-change="handleStatusChange"
+        @undo="undo"
+        @redo="redo"
+        @export="exportPdf(invoice)"
+        @send-email="openCompose(invoice)"
+      />
 
-      <SettingsView v-else-if="view === 'settings'" key="settings" />
+      <Transition name="view-fade" mode="out-in">
+        <DashboardView v-if="view === 'dashboard'" key="dashboard" @create="handleCreate" @open="handleOpen" />
 
-      <TwoPaneLayout v-else key="editor">
-        <template #form>
-          <InvoiceForm :invoice="invoice" />
-        </template>
-        <template #preview>
-          <InvoicePreview :invoice="invoice" />
-        </template>
-      </TwoPaneLayout>
-    </Transition>
+        <SettingsView v-else-if="view === 'settings'" key="settings" />
 
-    <AppDialog />
-    <EmailComposeDialog />
+        <CatalogView v-else-if="view === 'catalog'" key="catalog" />
+
+        <TwoPaneLayout v-else key="editor">
+          <template #form>
+            <InvoiceForm :invoice="invoice" />
+          </template>
+          <template #preview>
+            <InvoicePreview :invoice="invoice" />
+          </template>
+        </TwoPaneLayout>
+      </Transition>
+
+      <AppDialog />
+      <EmailComposeDialog />
+    </div>
   </div>
 </template>
