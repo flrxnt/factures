@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { Files, Package, Settings } from '@lucide/vue'
+import { Files, Package, Settings, Warehouse } from '@lucide/vue'
 import type { AppView } from '../../composables/useAppNavigation'
 
 defineProps<{
   view: AppView
-  showCatalog: boolean
+  isTauriEnv: boolean
 }>()
 
 const emit = defineEmits<{
   'open-dashboard': []
   'open-catalog': []
+  'open-stock': []
   'open-settings': []
 }>()
 </script>
@@ -29,7 +30,7 @@ const emit = defineEmits<{
         Documents
       </button>
       <button
-        v-if="showCatalog"
+        v-if="isTauriEnv"
         type="button"
         class="flex items-center gap-2.5 rounded-full px-3.5 py-2 text-left text-sm font-medium transition"
         :class="view === 'catalog' ? 'bg-ink text-paper' : 'text-ink-soft hover:bg-paper-dim hover:text-ink'"
@@ -37,6 +38,16 @@ const emit = defineEmits<{
       >
         <Package class="h-4 w-4 shrink-0" />
         Catalogue
+      </button>
+      <button
+        v-if="isTauriEnv"
+        type="button"
+        class="flex items-center gap-2.5 rounded-full px-3.5 py-2 text-left text-sm font-medium transition"
+        :class="view === 'stock' ? 'bg-ink text-paper' : 'text-ink-soft hover:bg-paper-dim hover:text-ink'"
+        @click="emit('open-stock')"
+      >
+        <Warehouse class="h-4 w-4 shrink-0" />
+        Stock
       </button>
     </nav>
 

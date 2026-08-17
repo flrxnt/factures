@@ -29,6 +29,13 @@ pub fn run() {
       commands::products::save_product,
       commands::products::list_products,
       commands::products::remove_product,
+      commands::stock::save_warehouse,
+      commands::stock::list_warehouses,
+      commands::stock::remove_warehouse,
+      commands::stock::create_stock_movement,
+      commands::stock::list_stock_movements,
+      commands::stock::get_stock_levels,
+      commands::stock::apply_invoice_stock_movements,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

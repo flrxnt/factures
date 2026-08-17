@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { Pencil, Trash2 } from '@lucide/vue'
+import { Pencil, Trash2, TriangleAlert } from '@lucide/vue'
 import { useProductCollection } from '../../composables/useProductCollection'
+import { useStockCollection } from '../../composables/useStockCollection'
 import { useAppDialog } from '../../composables/useAppDialog'
 import { useAppSettings } from '../../composables/useAppSettings'
 import { formatCurrency } from '../../composables/useCurrencyFormat'
@@ -15,10 +16,14 @@ import BaseToggle from '../ui/BaseToggle.vue'
 import ProductFormDialog from './ProductFormDialog.vue'
 
 const { products, isLoading, ensureLoaded, remove, create } = useProductCollection()
+const { quantityFor, ensureLoaded: ensureStockLoaded } = useStockCollection()
 const { confirm: confirmDialog, alert: alertDialog } = useAppDialog()
 const { settings } = useAppSettings()
 
-onMounted(ensureLoaded)
+onMounted(() => {
+  ensureLoaded()
+  ensureStockLoaded()
+})
 
 const searchQuery = ref('')
 const kindFilter = ref<ProductKind | 'all'>('all')
@@ -40,8 +45,13 @@ const columns: DataTableColumn[] = [
   { key: 'category', label: 'Catégorie', sortable: true },
   { key: 'kind', label: 'Type' },
   { key: 'salePrice', label: 'Prix de vente', align: 'right', sortable: true },
+  { key: 'stock', label: 'Stock', align: 'right' },
   { key: 'actions', label: '' },
 ]
+
+function isLowStock(product: Product): boolean {
+  return product.kind === 'good' && product.lowStockThreshold != null && quantityFor(product.id) <= product.lowStockThreshold
+}
 
 const editing = ref<Product | null>(null)
 const isNew = ref(false)
@@ -138,6 +148,13 @@ async function handleRemove(product: Product) {
         </template>
         <template #cell-kind="{ value }">
           {{ getProductKindDescriptor(value as ProductKind).labelFr }}
+        </template>
+        <template #cell-stock="{ row }">
+          <span v-if="(row as unknown as Product).kind === 'good'" class="inline-flex items-center justify-end gap-1.5">
+            <TriangleAlert v-if="isLowStock(row as unknown as Product)" class="h-3.5 w-3.5 text-[#7d2e3b]" />
+            {{ quantityFor((row as unknown as Product).id) }}
+          </span>
+          <span v-else class="text-muted">—</span>
         </template>
         <template #cell-actions="{ row }">
           <div class="flex justify-end gap-1">

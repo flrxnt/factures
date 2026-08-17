@@ -5,6 +5,7 @@ import { getItem, setItem } from '../lib/storage'
 import { MAX_INVOICES, createEmptyInvoice } from '../config/defaults'
 import { useAppSettings } from './useAppSettings'
 import * as documentsApi from '../lib/documentsApi'
+import { applyInvoiceStockMovements } from '../lib/stockApi'
 
 const INVOICES_KEY = 'flofactures:invoices:v1'
 const AUTOSAVE_DELAY_MS = 400
@@ -53,10 +54,18 @@ function persistWeb() {
 /** Upserts a single document. On desktop this is a fire-and-forget Tauri
  * call (local SQLite write, fast and reliable) so every existing caller
  * keeps its synchronous call shape; on web it's the original whole-array
- * localStorage rewrite. */
+ * localStorage rewrite.
+ *
+ * Every persist also asks Rust to reconcile stock movements for the
+ * document — a no-op unless it's a non-draft invoice with catalog-linked
+ * lines that haven't already been recorded (idempotent, see
+ * apply_invoice_stock_movements), so it's safe to call unconditionally
+ * here rather than threading "did the status just leave draft?" logic
+ * through every one of this file's several call sites. */
 function persistOne(invoice: Invoice) {
   if (tauriEnv) {
     documentsApi.saveDocument(invoice).catch((error) => console.error('Failed to save document', error))
+    applyInvoiceStockMovements(invoice.id, invoice.updatedAt).catch((error) => console.error('Failed to reconcile stock movements', error))
   } else {
     persistWeb()
   }

@@ -17,6 +17,7 @@ import InvoicePreview from './components/preview/InvoicePreview.vue'
 import DashboardView from './components/dashboard/DashboardView.vue'
 import SettingsView from './components/settings/SettingsView.vue'
 import CatalogView from './components/catalog/CatalogView.vue'
+import StockView from './components/stock/StockView.vue'
 import AppDialog from './components/ui/AppDialog.vue'
 import EmailComposeDialog from './components/ui/EmailComposeDialog.vue'
 
@@ -24,7 +25,7 @@ const isTauriEnv = isTauri()
 
 const { invoice, replaceInvoice } = useInvoiceStore()
 const { create, cloneForEditing, useAutosave } = useInvoiceCollection()
-const { view, openDashboard, openEditor, openSettings, openCatalog } = useAppNavigation()
+const { view, openDashboard, openEditor, openSettings, openCatalog, openStock } = useAppNavigation()
 const { exportPdf } = usePdfExport()
 const { undo, redo, reset: resetUndoHistory, canUndo, canRedo } = useUndoHistory(invoice)
 const { start: startTheme, stop: stopTheme } = useAppTheme()
@@ -90,7 +91,14 @@ onUnmounted(() => {
 
 <template>
   <div class="flex min-h-screen bg-paper font-sans text-ink">
-    <AppSidebar :view="view" :show-catalog="isTauriEnv" @open-dashboard="openDashboard" @open-catalog="openCatalog" @open-settings="openSettings" />
+    <AppSidebar
+      :view="view"
+      :is-tauri-env="isTauriEnv"
+      @open-dashboard="openDashboard"
+      @open-catalog="openCatalog"
+      @open-stock="openStock"
+      @open-settings="openSettings"
+    />
 
     <div class="flex min-w-0 flex-1 flex-col">
       <AppHeader
@@ -114,6 +122,8 @@ onUnmounted(() => {
         <SettingsView v-else-if="view === 'settings'" key="settings" />
 
         <CatalogView v-else-if="view === 'catalog'" key="catalog" />
+
+        <StockView v-else-if="view === 'stock'" key="stock" />
 
         <TwoPaneLayout v-else key="editor">
           <template #form>
