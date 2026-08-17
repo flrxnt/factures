@@ -1,4 +1,4 @@
-import type { Invoice, LineItem, SectionKey } from '../types/invoice'
+import type { DocumentType, Invoice, LineItem, SectionKey } from '../types/invoice'
 
 export const DEFAULT_CURRENCY = 'XOF'
 export const DEFAULT_LOCALE = 'fr-FR'
@@ -53,11 +53,12 @@ function dueDateIso(daysAhead: number): string {
   return d.toISOString().slice(0, 10)
 }
 
-export function createEmptyInvoice(): Invoice {
+export function createEmptyInvoice(docType: DocumentType = 'invoice'): Invoice {
   const now = new Date().toISOString()
   return {
     id: crypto.randomUUID(),
     schemaVersion: 1,
+    docType,
     name: '',
     status: 'draft',
     meta: {

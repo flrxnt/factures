@@ -30,6 +30,7 @@ const { totals } = useInvoiceTotals(props.invoice)
       :seller="invoice.seller"
       :show-logo="invoice.visibleSections.logo"
       :template="invoice.template"
+      :doc-type="invoice.docType"
     />
 
     <PreviewMeta

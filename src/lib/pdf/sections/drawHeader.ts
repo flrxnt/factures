@@ -3,6 +3,7 @@ import type { Invoice } from '../../../types/invoice'
 import type { PdfCursor } from '../pdfCursor'
 import { PDF_PAGE, PDF_CONTENT_WIDTH } from '../../../config/invoiceLayout'
 import { PDF_THEME, hexToRgb, trackedUpper } from '../pdfTheme'
+import { getDocumentTypeDescriptor } from '../../../config/documentTypes'
 
 const LOGO_SIZE = 16
 
@@ -40,6 +41,7 @@ export function drawHeader(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): voi
   const left = PDF_PAGE.marginX
   const right = left + PDF_CONTENT_WIDTH
   const startY = cursor.y
+  const docTitle = getDocumentTypeDescriptor(invoice.docType).pdfTitleFr
 
   if (template === 'minimal') {
     doc.setFillColor(...hexToRgb(invoice.themeColor))
@@ -47,7 +49,7 @@ export function drawHeader(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): voi
     doc.setFont(PDF_THEME.font.body, 'bold')
     doc.setFontSize(PDF_THEME.font.sizeBody)
     doc.setTextColor(...PDF_THEME.colors.ink)
-    doc.text(trackedUpper('Facture'), left + 5, startY + 2.5)
+    doc.text(trackedUpper(docTitle), left + 5, startY + 2.5)
 
     let textX = left
     const logoY = startY + 9
@@ -71,7 +73,7 @@ export function drawHeader(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): voi
     doc.setFont(PDF_THEME.font.body, 'bold')
     doc.setFontSize(PDF_THEME.font.sizeTitle - 4)
     doc.setTextColor(255, 253, 248) // paper
-    doc.text('FACTURE', left + 6, startY + bandHeight / 2 + 3)
+    doc.text(docTitle.toUpperCase(), left + 6, startY + bandHeight / 2 + 3)
 
     if (visibleSections.logo && seller.logoDataUrl) {
       try {
@@ -103,7 +105,7 @@ export function drawHeader(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): voi
   doc.setFont(PDF_THEME.font.display, 'bolditalic')
   doc.setFontSize(PDF_THEME.font.sizeTitle)
   doc.setTextColor(...hexToRgb(invoice.themeColor))
-  doc.text('Facture', right, startY + 7, { align: 'right' })
+  doc.text(docTitle, right, startY + 7, { align: 'right' })
 
   const blockHeight = Math.max(LOGO_SIZE, lineY - startY)
   cursor.y = startY + blockHeight + PDF_THEME.spacing.afterHeader

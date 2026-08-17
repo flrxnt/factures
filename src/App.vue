@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
-import type { InvoiceStatus } from './types/invoice'
+import type { DocumentType, InvoiceStatus } from './types/invoice'
 import { useInvoiceStore } from './composables/useInvoiceStore'
 import { useInvoiceCollection } from './composables/useInvoiceCollection'
 import { useAppNavigation } from './composables/useAppNavigation'
@@ -33,8 +33,8 @@ useAutosave(invoice)
 const invoiceName = computed(() => invoice.name)
 const invoiceStatus = computed(() => invoice.status)
 
-function handleCreate() {
-  const draft = create()
+function handleCreate(docType: DocumentType = 'invoice') {
+  const draft = create(docType)
   replaceInvoice(draft)
   resetUndoHistory()
   openEditor(draft.id)

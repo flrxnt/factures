@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import type { CompanyInfo, InvoiceTemplate } from '../../types/invoice'
+import { computed } from 'vue'
+import type { CompanyInfo, DocumentType, InvoiceTemplate } from '../../types/invoice'
+import { getDocumentTypeDescriptor } from '../../config/documentTypes'
 
-defineProps<{
+const props = defineProps<{
   seller: CompanyInfo
   showLogo: boolean
   template: InvoiceTemplate
+  docType: DocumentType
 }>()
+
+const docTitle = computed(() => getDocumentTypeDescriptor(props.docType).pdfTitleFr)
 </script>
 
 <template>
@@ -29,14 +34,14 @@ defineProps<{
         <p v-if="seller.phone">{{ seller.phone }}</p>
       </div>
     </div>
-    <p class="font-display text-4xl text-accent italic">Facture</p>
+    <p class="font-display text-4xl text-accent italic">{{ docTitle }}</p>
   </div>
 
   <!-- Minimal: everything left-aligned and stacked, quiet uppercase sans title -->
   <div v-else-if="template === 'minimal'" class="space-y-5">
     <div class="flex items-center gap-2">
       <span class="h-2 w-2 shrink-0 bg-accent"></span>
-      <p class="font-sans text-base font-semibold tracking-[0.2em] text-ink uppercase">Facture</p>
+      <p class="font-sans text-base font-semibold tracking-[0.2em] text-ink uppercase">{{ docTitle }}</p>
     </div>
     <div class="flex items-start gap-4">
       <img
@@ -61,7 +66,7 @@ defineProps<{
   <!-- Bold: solid accent band with the title, seller info below -->
   <div v-else class="space-y-5">
     <div class="flex items-center justify-between rounded-lg bg-accent px-5 py-4">
-      <p class="font-sans text-3xl font-extrabold tracking-tight text-paper uppercase">Facture</p>
+      <p class="font-sans text-3xl font-extrabold tracking-tight text-paper uppercase">{{ docTitle }}</p>
       <img v-if="showLogo && seller.logoDataUrl" :src="seller.logoDataUrl" alt="Logo" class="h-12 w-12 shrink-0 rounded bg-paper object-contain p-1" />
     </div>
     <div class="text-sm text-ink-soft">

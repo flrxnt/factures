@@ -22,6 +22,10 @@ pub fn run() {
       commands::payments::create_paydunya_payment_link,
       commands::migration::import_legacy_invoices,
       commands::migration::has_imported_legacy_invoices,
+      commands::documents::save_document,
+      commands::documents::list_documents,
+      commands::documents::remove_document,
+      commands::documents::create_document_link,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { InvoiceStatus } from '../../types/invoice'
+import { isTauri } from '@tauri-apps/api/core'
+import type { DocumentType, InvoiceStatus } from '../../types/invoice'
 import { useInvoiceCollection } from '../../composables/useInvoiceCollection'
 import { getItem, setItem } from '../../lib/storage'
 import { STATUS_ORDER, getStatusDescriptor } from '../../config/statuses'
+import { DOCUMENT_TYPE_ORDER } from '../../config/documentTypes'
 import { exportInvoicesAsCsv, exportInvoicesAsJson } from '../../lib/exportData'
 import { useAppDialog } from '../../composables/useAppDialog'
 import { useEmailCompose } from '../../composables/useEmailCompose'
@@ -13,15 +15,22 @@ import InvoiceListRow from './InvoiceListRow.vue'
 import NewInvoiceCard from './NewInvoiceCard.vue'
 import ViewModeToggle from './ViewModeToggle.vue'
 import BaseButton from '../ui/BaseButton.vue'
+import LoadingState from '../ui/LoadingState.vue'
 
 const emit = defineEmits<{
-  create: []
+  create: [docType?: DocumentType]
   open: [id: string]
 }>()
 
-const { invoices, remove, rename, duplicate, setStatus, importInvoices } = useInvoiceCollection()
+const isTauriEnv = isTauri()
+const { invoices, isLoading, remove, rename, duplicate, setStatus, importInvoices, transformDocument } = useInvoiceCollection()
 const { confirm: confirmDialog, alert: alertDialog } = useAppDialog()
 const { openCompose } = useEmailCompose()
+
+async function handleTransformToInvoice(id: string) {
+  const result = await transformDocument(id, 'invoice')
+  if (result) emit('open', result.id)
+}
 
 const importInputRef = ref<HTMLInputElement | null>(null)
 
@@ -57,6 +66,7 @@ function setViewMode(mode: 'grid' | 'list') {
 }
 
 const statusFilter = ref<InvoiceStatus | 'all'>('all')
+const docTypeFilter = ref<DocumentType | 'all'>('all')
 const searchQuery = ref('')
 
 function normalize(value: string): string {
@@ -70,6 +80,9 @@ const filteredInvoices = computed(() => {
   let result = invoices.value
   if (statusFilter.value !== 'all') {
     result = result.filter((invoice) => invoice.status === statusFilter.value)
+  }
+  if (docTypeFilter.value !== 'all') {
+    result = result.filter((invoice) => invoice.docType === docTypeFilter.value)
   }
   const query = normalize(searchQuery.value.trim())
   if (query) {
@@ -93,104 +106,132 @@ async function handleRemove(id: string, name: string) {
 <template>
   <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-      <h2 class="font-display text-2xl text-ink">Mes factures</h2>
+      <h2 class="font-display text-2xl text-ink">{{ isTauriEnv ? 'Mes documents' : 'Mes factures' }}</h2>
       <div class="flex items-center gap-3">
         <ViewModeToggle v-if="invoices.length > 0" :model-value="viewMode" @update:model-value="setViewMode" />
         <input ref="importInputRef" type="file" accept="application/json" class="hidden" @change="handleImportFile" />
         <BaseButton variant="secondary" @click="triggerImport">Importer (JSON)</BaseButton>
-        <BaseButton variant="primary" @click="emit('create')">+ Nouvelle facture</BaseButton>
+        <BaseButton v-if="isTauriEnv" variant="secondary" @click="emit('create', 'quote')">+ Nouveau devis</BaseButton>
+        <BaseButton variant="primary" @click="emit('create', 'invoice')">+ Nouvelle facture</BaseButton>
       </div>
     </div>
 
-    <div v-if="invoices.length > 0" class="mb-4">
-      <label class="flex items-center gap-2 rounded-full border border-hairline-strong bg-surface px-3.5 py-2 sm:max-w-xs">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0 text-muted">
-          <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4" />
-          <line x1="9.8" y1="9.8" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
-        </svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Rechercher une facture, un client..."
-          class="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted"
+    <LoadingState v-if="isLoading" :rows="4" label="Chargement des documents…" />
+
+    <template v-else>
+      <div v-if="invoices.length > 0" class="mb-4">
+        <label class="flex items-center gap-2 rounded-full border border-hairline-strong bg-surface px-3.5 py-2 sm:max-w-xs">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" class="shrink-0 text-muted">
+            <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4" />
+            <line x1="9.8" y1="9.8" x2="13" y2="13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Rechercher une facture, un client..."
+            class="w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-paper-dim hover:text-ink active:scale-90"
+            title="Effacer"
+            @click="searchQuery = ''"
+          >
+            <X class="h-3.5 w-3.5" />
+          </button>
+        </label>
+      </div>
+
+      <div v-if="isTauriEnv && invoices.length > 0" class="mb-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
+          :class="docTypeFilter === 'all' ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
+          @click="docTypeFilter = 'all'"
+        >
+          Tous types
+        </button>
+        <button
+          v-for="docType in DOCUMENT_TYPE_ORDER"
+          :key="docType.value"
+          type="button"
+          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
+          :class="docTypeFilter === docType.value ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
+          @click="docTypeFilter = docType.value"
+        >
+          {{ docType.labelFr }} ({{ invoices.filter((i) => i.docType === docType.value).length }})
+        </button>
+      </div>
+
+      <div v-if="invoices.length > 0" class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
+            :class="statusFilter === 'all' ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
+            @click="statusFilter = 'all'"
+          >
+            Tous ({{ invoices.length }})
+          </button>
+          <button
+            v-for="status in STATUS_ORDER"
+            :key="status.value"
+            type="button"
+            class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
+            :style="statusFilter === status.value ? { borderColor: status.color, backgroundColor: status.color, color: '#fffdf8' } : { borderColor: status.color + '55', color: status.color }"
+            @click="statusFilter = status.value"
+          >
+            {{ status.labelFr }} ({{ invoices.filter((i) => i.status === status.value).length }})
+          </button>
+        </div>
+        <div class="flex gap-3 text-sm">
+          <button type="button" class="text-muted hover:text-ink" @click="exportInvoicesAsJson(invoices)">Exporter (JSON)</button>
+          <button type="button" class="text-muted hover:text-ink" @click="exportInvoicesAsCsv(invoices)">Exporter (CSV)</button>
+        </div>
+      </div>
+
+      <p v-if="invoices.length === 0" class="rounded-2xl border border-dashed border-hairline-strong py-16 text-center text-sm text-muted">
+        Aucune facture pour le moment. Créez-en une pour commencer.
+      </p>
+      <p
+        v-else-if="filteredInvoices.length === 0"
+        class="rounded-2xl border border-dashed border-hairline-strong py-16 text-center text-sm text-muted"
+      >
+        <template v-if="searchQuery">Aucune facture ne correspond à « {{ searchQuery }} ».</template>
+        <template v-else>Aucune facture avec le statut « {{ getStatusDescriptor(statusFilter as InvoiceStatus).labelFr }} ».</template>
+      </p>
+
+      <div v-else-if="viewMode === 'grid'" class="flex flex-wrap gap-5">
+        <NewInvoiceCard v-if="statusFilter === 'all' && docTypeFilter === 'all' && !searchQuery" @click="emit('create', 'invoice')" />
+        <InvoiceCard
+          v-for="invoice in filteredInvoices"
+          :key="invoice.id"
+          :invoice="invoice"
+          @open="emit('open', invoice.id)"
+          @rename="(name) => rename(invoice.id, name)"
+          @duplicate="duplicate(invoice.id)"
+          @remove="handleRemove(invoice.id, invoice.name)"
+          @send-email="openCompose(invoice)"
+          @transform-to-invoice="handleTransformToInvoice(invoice.id)"
+          @status-change="(status) => setStatus(invoice.id, status)"
         />
-        <button
-          v-if="searchQuery"
-          type="button"
-          class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-paper-dim hover:text-ink active:scale-90"
-          title="Effacer"
-          @click="searchQuery = ''"
-        >
-          <X class="h-3.5 w-3.5" />
-        </button>
-      </label>
-    </div>
-
-    <div v-if="invoices.length > 0" class="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex flex-wrap gap-2">
-        <button
-          type="button"
-          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
-          :class="statusFilter === 'all' ? 'border-ink bg-ink text-paper' : 'border-hairline-strong text-muted hover:text-ink'"
-          @click="statusFilter = 'all'"
-        >
-          Tous ({{ invoices.length }})
-        </button>
-        <button
-          v-for="status in STATUS_ORDER"
-          :key="status.value"
-          type="button"
-          class="rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase transition active:scale-95"
-          :style="statusFilter === status.value ? { borderColor: status.color, backgroundColor: status.color, color: '#fffdf8' } : { borderColor: status.color + '55', color: status.color }"
-          @click="statusFilter = status.value"
-        >
-          {{ status.labelFr }} ({{ invoices.filter((i) => i.status === status.value).length }})
-        </button>
       </div>
-      <div class="flex gap-3 text-sm">
-        <button type="button" class="text-muted hover:text-ink" @click="exportInvoicesAsJson(invoices)">Exporter (JSON)</button>
-        <button type="button" class="text-muted hover:text-ink" @click="exportInvoicesAsCsv(invoices)">Exporter (CSV)</button>
-      </div>
-    </div>
 
-    <p v-if="invoices.length === 0" class="rounded-2xl border border-dashed border-hairline-strong py-16 text-center text-sm text-muted">
-      Aucune facture pour le moment. Créez-en une pour commencer.
-    </p>
-    <p
-      v-else-if="filteredInvoices.length === 0"
-      class="rounded-2xl border border-dashed border-hairline-strong py-16 text-center text-sm text-muted"
-    >
-      <template v-if="searchQuery">Aucune facture ne correspond à « {{ searchQuery }} ».</template>
-      <template v-else>Aucune facture avec le statut « {{ getStatusDescriptor(statusFilter as InvoiceStatus).labelFr }} ».</template>
-    </p>
-
-    <div v-else-if="viewMode === 'grid'" class="flex flex-wrap gap-5">
-      <NewInvoiceCard v-if="statusFilter === 'all' && !searchQuery" @click="emit('create')" />
-      <InvoiceCard
-        v-for="invoice in filteredInvoices"
-        :key="invoice.id"
-        :invoice="invoice"
-        @open="emit('open', invoice.id)"
-        @rename="(name) => rename(invoice.id, name)"
-        @duplicate="duplicate(invoice.id)"
-        @remove="handleRemove(invoice.id, invoice.name)"
-        @send-email="openCompose(invoice)"
-        @status-change="(status) => setStatus(invoice.id, status)"
-      />
-    </div>
-
-    <ul v-else class="overflow-hidden rounded-xl border border-hairline">
-      <InvoiceListRow
-        v-for="invoice in filteredInvoices"
-        :key="invoice.id"
-        :invoice="invoice"
-        @open="emit('open', invoice.id)"
-        @rename="(name) => rename(invoice.id, name)"
-        @duplicate="duplicate(invoice.id)"
-        @remove="handleRemove(invoice.id, invoice.name)"
-        @send-email="openCompose(invoice)"
-        @status-change="(status) => setStatus(invoice.id, status)"
-      />
-    </ul>
+      <ul v-else class="overflow-hidden rounded-xl border border-hairline">
+        <InvoiceListRow
+          v-for="invoice in filteredInvoices"
+          :key="invoice.id"
+          :invoice="invoice"
+          @open="emit('open', invoice.id)"
+          @rename="(name) => rename(invoice.id, name)"
+          @duplicate="duplicate(invoice.id)"
+          @remove="handleRemove(invoice.id, invoice.name)"
+          @send-email="openCompose(invoice)"
+          @transform-to-invoice="handleTransformToInvoice(invoice.id)"
+          @status-change="(status) => setStatus(invoice.id, status)"
+        />
+      </ul>
+    </template>
   </div>
 </template>

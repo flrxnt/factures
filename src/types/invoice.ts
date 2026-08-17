@@ -1,6 +1,16 @@
 export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
 
 /**
+ * What kind of commercial document this is — 'invoice' is the only type on
+ * the web build (no backend, no relational storage); 'quote' is available on
+ * desktop once documents are persisted in the local SQLite database. Kept as
+ * a field on the same `Invoice` shape rather than a separate type, since a
+ * quote and an invoice share ~everything (header, lines, totals, seller/
+ * client) — see config/documentTypes.ts for the label catalogue.
+ */
+export type DocumentType = 'invoice' | 'quote'
+
+/**
  * A layout style, not just a color — each one changes title typography,
  * header arrangement, and table/totals treatment, applied identically to
  * the on-screen preview and the PDF. See config/templates.ts for the
@@ -97,6 +107,7 @@ export interface InvoiceMeta {
 export interface Invoice {
   id: string
   schemaVersion: number
+  docType: DocumentType
   /** User-editable document name shown on the dashboard and used (sanitized)
    * as the downloaded PDF's filename — independent of meta.invoiceNumber. */
   name: string

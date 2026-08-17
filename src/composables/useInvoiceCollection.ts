@@ -1,22 +1,73 @@
 import { ref, watch } from 'vue'
-import type { Invoice, InvoiceStatus } from '../types/invoice'
+import { isTauri } from '@tauri-apps/api/core'
+import type { DocumentType, Invoice, InvoiceStatus } from '../types/invoice'
 import { getItem, setItem } from '../lib/storage'
 import { MAX_INVOICES, createEmptyInvoice } from '../config/defaults'
 import { useAppSettings } from './useAppSettings'
+import * as documentsApi from '../lib/documentsApi'
 
 const INVOICES_KEY = 'flofactures:invoices:v1'
 const AUTOSAVE_DELAY_MS = 400
+const tauriEnv = isTauri()
 
 /**
- * Every invoice the user creates lives here (there's no separate "draft"
- * concept) — this is what the dashboard lists, and what the editor's
- * autosave writes back into. Replaces the old draft+history split: a
- * document is a document whether or not it's been downloaded yet.
+ * Every invoice/quote the user creates lives here (there's no separate
+ * "draft" concept) — this is what the dashboard lists, and what the
+ * editor's autosave writes back into.
+ *
+ * On the web build (no backend), this array IS the store — it's hydrated
+ * synchronously from localStorage and every mutation rewrites the whole
+ * blob back to it, same as always.
+ *
+ * On desktop, the local SQLite database is the source of truth: this array
+ * is a full in-memory mirror, hydrated once asynchronously at startup
+ * (`bootstrapDesktop`), after which every read here stays synchronous
+ * (unchanged for every consumer) while writes fire an async Tauri command
+ * in the background. `MAX_INVOICES` — an artifact of localStorage blob
+ * size — no longer applies once SQLite is the backend.
  */
-const invoices = ref<Invoice[]>(getItem<Invoice[]>(INVOICES_KEY, []))
+const invoices = ref<Invoice[]>(tauriEnv ? [] : getItem<Invoice[]>(INVOICES_KEY, []))
+const isLoading = ref(tauriEnv)
 
-function persist() {
+async function bootstrapDesktop() {
+  try {
+    const alreadyMigrated = await documentsApi.hasImportedLegacyInvoices()
+    if (!alreadyMigrated) {
+      const legacy = getItem<Invoice[]>(INVOICES_KEY, [])
+      if (legacy.length > 0) await documentsApi.importLegacyInvoices(legacy)
+    }
+    invoices.value = await documentsApi.listDocuments()
+  } catch (error) {
+    console.error('Failed to load documents from the local database', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+if (tauriEnv) bootstrapDesktop()
+
+function persistWeb() {
   setItem(INVOICES_KEY, invoices.value)
+}
+
+/** Upserts a single document. On desktop this is a fire-and-forget Tauri
+ * call (local SQLite write, fast and reliable) so every existing caller
+ * keeps its synchronous call shape; on web it's the original whole-array
+ * localStorage rewrite. */
+function persistOne(invoice: Invoice) {
+  if (tauriEnv) {
+    documentsApi.saveDocument(invoice).catch((error) => console.error('Failed to save document', error))
+  } else {
+    persistWeb()
+  }
+}
+
+function persistRemoval(id: string) {
+  if (tauriEnv) {
+    documentsApi.removeDocument(id).catch((error) => console.error('Failed to delete document', error))
+  } else {
+    persistWeb()
+  }
 }
 
 function save(invoice: Invoice) {
@@ -28,15 +79,15 @@ function save(invoice: Invoice) {
   } else {
     invoices.value.unshift(snapshot)
   }
-  if (invoices.value.length > MAX_INVOICES) {
+  if (!tauriEnv && invoices.value.length > MAX_INVOICES) {
     invoices.value = invoices.value.slice(0, MAX_INVOICES)
   }
-  persist()
+  persistOne(snapshot)
 }
 
 function remove(id: string) {
   invoices.value = invoices.value.filter((entry) => entry.id !== id)
-  persist()
+  persistRemoval(id)
 }
 
 function get(id: string): Invoice | undefined {
@@ -52,10 +103,10 @@ function cloneForEditing(id: string): Invoice | null {
   return source ? JSON.parse(JSON.stringify(source)) : null
 }
 
-/** Creates a new invoice, persists it immediately (so it shows up on the
- * dashboard right away), and returns an independent working copy. */
-function create(): Invoice {
-  const invoice = createEmptyInvoice()
+/** Creates a new invoice or quote, persists it immediately (so it shows up
+ * on the dashboard right away), and returns an independent working copy. */
+function create(docType: DocumentType = 'invoice'): Invoice {
+  const invoice = createEmptyInvoice(docType)
   const { invoiceDefaults } = useAppSettings().settings
   invoice.meta.currency = invoiceDefaults.currency
   invoice.meta.locale = invoiceDefaults.locale
@@ -63,7 +114,7 @@ function create(): Invoice {
   invoice.themeColor = invoiceDefaults.themeColor
   invoice.template = invoiceDefaults.template
   invoices.value.unshift(invoice)
-  persist()
+  persistOne(invoice)
   return JSON.parse(JSON.stringify(invoice))
 }
 
@@ -72,7 +123,7 @@ function rename(id: string, name: string) {
   if (!entry) return
   entry.name = name
   entry.updatedAt = new Date().toISOString()
-  persist()
+  persistOne(entry)
 }
 
 /** Updates status directly from the dashboard, without opening the editor. */
@@ -81,7 +132,7 @@ function setStatus(id: string, status: InvoiceStatus) {
   if (!entry) return
   entry.status = status
   entry.updatedAt = new Date().toISOString()
-  persist()
+  persistOne(entry)
 }
 
 /** Clones an entry as a brand-new independent invoice (fresh id/timestamps,
@@ -98,8 +149,45 @@ function duplicate(id: string): Invoice | null {
   copy.updatedAt = now
   const index = invoices.value.findIndex((entry) => entry.id === id)
   invoices.value.splice(index === -1 ? 0 : index + 1, 0, copy)
-  persist()
+  persistOne(copy)
   return copy
+}
+
+/** Desktop-only: creates a new document of `targetDocType` pre-filled from
+ * `sourceId` (e.g. turning a Devis into a Facture in one click), and
+ * records the relation between the two in `document_links`. Web has no
+ * relational storage, so document transformation isn't offered there. */
+async function transformDocument(sourceId: string, targetDocType: DocumentType): Promise<Invoice | null> {
+  const source = get(sourceId)
+  if (!source) return null
+
+  const now = new Date().toISOString()
+  const target: Invoice = JSON.parse(JSON.stringify(source))
+  target.id = crypto.randomUUID()
+  target.docType = targetDocType
+  target.status = 'draft'
+  target.paymentLink = ''
+  target.createdAt = now
+  target.updatedAt = now
+
+  invoices.value.unshift(target)
+  persistOne(target)
+
+  if (tauriEnv) {
+    try {
+      await documentsApi.createDocumentLink({
+        id: crypto.randomUUID(),
+        sourceDocumentId: source.id,
+        targetDocumentId: target.id,
+        relation: `${source.docType}_to_${target.docType}`,
+        createdAt: now,
+      })
+    } catch (error) {
+      console.error('Failed to record the document link', error)
+    }
+  }
+
+  return JSON.parse(JSON.stringify(target))
 }
 
 export interface ImportResult {
@@ -120,10 +208,11 @@ function isValidInvoiceShape(value: unknown): value is Invoice {
  * Counterpart to exportInvoicesAsJson (lib/exportData.ts) — restores a
  * previously-exported `{ exportedAt, invoices }` backup. Existing invoices
  * with a matching id are overwritten (last-write-wins, using the imported
- * file's own updatedAt); everything else is merged in. The merged set is
- * sorted by updatedAt (most recent first) *before* the MAX_INVOICES cap is
- * applied, so a bulk import can't silently push out invoices that are
- * actually more recent than some of the incoming ones.
+ * file's own updatedAt); everything else is merged in. On web, the merged
+ * set is sorted by updatedAt (most recent first) before the MAX_INVOICES
+ * cap is applied, so a bulk import can't silently push out invoices that
+ * are actually more recent than some of the incoming ones; desktop has no
+ * such cap.
  */
 function importInvoices(payload: unknown): ImportResult {
   const incoming = payload && typeof payload === 'object' ? (payload as Record<string, unknown>).invoices : undefined
@@ -132,18 +221,27 @@ function importInvoices(payload: unknown): ImportResult {
   const byId = new Map(invoices.value.map((entry) => [entry.id, entry]))
   let imported = 0
   let skipped = 0
+  const importedEntries: Invoice[] = []
 
   for (const entry of incoming) {
     if (!isValidInvoiceShape(entry)) {
       skipped += 1
       continue
     }
+    if (!entry.docType) entry.docType = 'invoice'
     byId.set(entry.id, entry)
+    importedEntries.push(entry)
     imported += 1
   }
 
-  invoices.value = [...byId.values()].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)).slice(0, MAX_INVOICES)
-  persist()
+  const merged = [...byId.values()].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+  invoices.value = tauriEnv ? merged : merged.slice(0, MAX_INVOICES)
+
+  if (tauriEnv) {
+    for (const entry of importedEntries) persistOne(entry)
+  } else {
+    persistWeb()
+  }
 
   return { imported, skipped }
 }
@@ -163,5 +261,19 @@ function useAutosave(invoice: Invoice) {
 }
 
 export function useInvoiceCollection() {
-  return { invoices, save, remove, get, cloneForEditing, create, rename, duplicate, setStatus, importInvoices, useAutosave }
+  return {
+    invoices,
+    isLoading,
+    save,
+    remove,
+    get,
+    cloneForEditing,
+    create,
+    rename,
+    duplicate,
+    setStatus,
+    importInvoices,
+    useAutosave,
+    transformDocument,
+  }
 }

@@ -1,3 +1,5 @@
+pub mod document_dto;
+pub mod documents;
 pub mod email;
 pub mod migration;
 pub mod payments;
