@@ -36,6 +36,9 @@ pub fn run() {
       commands::stock::list_stock_movements,
       commands::stock::get_stock_levels,
       commands::stock::apply_invoice_stock_movements,
+      commands::finance::save_payment,
+      commands::finance::list_payments,
+      commands::finance::remove_payment,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

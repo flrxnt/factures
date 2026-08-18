@@ -1,6 +1,7 @@
 pub mod document_dto;
 pub mod documents;
 pub mod email;
+pub mod finance;
 pub mod migration;
 pub mod payments;
 pub mod products;

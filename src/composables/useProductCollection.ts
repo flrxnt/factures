@@ -8,16 +8,19 @@ import * as productsApi from '../lib/productsApi'
 // asks for it (the Catalogue view, or the line-item autocomplete).
 const products = ref<Product[]>([])
 const isLoading = ref(false)
+const loadError = ref<string | null>(null)
 let hydrated = false
 
 async function ensureLoaded(): Promise<void> {
   if (hydrated) return
   isLoading.value = true
+  loadError.value = null
   try {
     products.value = await productsApi.listProducts()
     hydrated = true
   } catch (error) {
     console.error('Failed to load the product catalog', error)
+    loadError.value = String(error)
   } finally {
     isLoading.value = false
   }
@@ -45,5 +48,5 @@ async function remove(id: string): Promise<void> {
 }
 
 export function useProductCollection() {
-  return { products, isLoading, ensureLoaded, get, save, remove, create: createEmptyProduct }
+  return { products, isLoading, loadError, ensureLoaded, get, save, remove, create: createEmptyProduct }
 }

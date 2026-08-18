@@ -1,4 +1,4 @@
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+export type InvoiceStatus = 'draft' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled'
 
 /**
  * What kind of commercial document this is — 'invoice' is the only type on

@@ -6,11 +6,13 @@ import * as stockApi from '../lib/stockApi'
 const warehouses = ref<Warehouse[]>([])
 const stockLevels = ref<StockLevel[]>([])
 const isLoading = ref(false)
+const loadError = ref<string | null>(null)
 let hydrated = false
 
 async function ensureLoaded(): Promise<void> {
   if (hydrated) return
   isLoading.value = true
+  loadError.value = null
   try {
     const [warehouseList, levels] = await Promise.all([stockApi.listWarehouses(), stockApi.getStockLevels()])
     warehouses.value = warehouseList
@@ -18,6 +20,7 @@ async function ensureLoaded(): Promise<void> {
     hydrated = true
   } catch (error) {
     console.error('Failed to load stock data', error)
+    loadError.value = String(error)
   } finally {
     isLoading.value = false
   }
@@ -53,6 +56,7 @@ export function useStockCollection() {
     warehouses,
     stockLevels,
     isLoading,
+    loadError,
     ensureLoaded,
     quantityFor,
     saveWarehouse,

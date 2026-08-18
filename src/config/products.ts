@@ -21,7 +21,7 @@ export function getProductKindDescriptor(kind: ProductKind): ProductKindDescript
  * list is still perfectly valid. */
 export const COMMON_UNITS = ['pièce', 'heure', 'jour', 'mois', 'forfait', 'kg', 'g', 'L', 'm', 'm²']
 
-export function createEmptyProduct(kind: ProductKind = 'service'): Product {
+export function createEmptyProduct(kind: ProductKind = 'good'): Product {
   const now = new Date().toISOString()
   return {
     id: crypto.randomUUID(),

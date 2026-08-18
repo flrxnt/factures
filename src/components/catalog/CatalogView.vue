@@ -15,7 +15,7 @@ import BaseButton from '../ui/BaseButton.vue'
 import BaseToggle from '../ui/BaseToggle.vue'
 import ProductFormDialog from './ProductFormDialog.vue'
 
-const { products, isLoading, ensureLoaded, remove, create } = useProductCollection()
+const { products, isLoading, loadError, ensureLoaded, remove, create } = useProductCollection()
 const { quantityFor, ensureLoaded: ensureStockLoaded } = useStockCollection()
 const { confirm: confirmDialog, alert: alertDialog } = useAppDialog()
 const { settings } = useAppSettings()
@@ -92,6 +92,10 @@ async function handleRemove(product: Product) {
     </div>
 
     <LoadingState v-if="isLoading" :rows="4" label="Chargement du catalogue…" />
+
+    <p v-else-if="loadError" class="rounded-2xl border border-dashed border-[#7d2e3b] py-16 text-center text-sm text-[#7d2e3b]">
+      Impossible de charger le catalogue : {{ loadError }}
+    </p>
 
     <template v-else>
       <div class="mb-6 flex flex-wrap items-center gap-3">

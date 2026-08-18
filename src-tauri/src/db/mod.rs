@@ -129,11 +129,15 @@ CREATE TABLE IF NOT EXISTS stock_movements (
 
 CREATE TABLE IF NOT EXISTS payments (
   id TEXT PRIMARY KEY,
-  document_id TEXT NOT NULL REFERENCES documents(id),
+  document_id TEXT REFERENCES documents(id),
+  direction TEXT NOT NULL DEFAULT 'in',
   amount REAL NOT NULL,
   method TEXT NOT NULL,
+  category TEXT,
+  counterparty TEXT,
   paid_at TEXT NOT NULL,
   reference TEXT,
+  note TEXT,
   created_at TEXT NOT NULL
 );
 
@@ -148,7 +152,51 @@ pub fn open(app_data_dir: &Path) -> rusqlite::Result<Connection> {
     let db_path = app_data_dir.join("facture.db");
     let conn = Connection::open(db_path)?;
     conn.execute_batch(SCHEMA_SQL)?;
+    migrate_payments_table(&conn)?;
     Ok(conn)
+}
+
+/// The Phase 0/3 `payments` table required `document_id` and had no
+/// `direction`/`category`/`counterparty`/`note` columns. Phase 4 generalizes
+/// it into a full in/out ledger (invoice payments AND standalone expenses).
+/// `CREATE TABLE IF NOT EXISTS` above is a no-op on a database that already
+/// has the old table, so existing installs need an explicit migration:
+/// rename, recreate with the new shape, copy rows across (every pre-existing
+/// row was an invoice payment, so `direction` backfills to 'in'), drop the
+/// old table. Detected by column presence rather than a version counter, so
+/// it self-heals even if `schema_meta` ever gets out of sync.
+fn migrate_payments_table(conn: &Connection) -> rusqlite::Result<()> {
+    let mut stmt = conn.prepare("PRAGMA table_info(payments)")?;
+    let columns: Vec<String> = stmt.query_map([], |row| row.get::<_, String>(1))?.collect::<rusqlite::Result<_>>()?;
+    drop(stmt);
+
+    if columns.iter().any(|name| name == "direction") {
+        return Ok(());
+    }
+
+    conn.execute_batch(
+        "BEGIN;
+         ALTER TABLE payments RENAME TO payments_v1;
+         CREATE TABLE payments (
+           id TEXT PRIMARY KEY,
+           document_id TEXT REFERENCES documents(id),
+           direction TEXT NOT NULL DEFAULT 'in',
+           amount REAL NOT NULL,
+           method TEXT NOT NULL,
+           category TEXT,
+           counterparty TEXT,
+           paid_at TEXT NOT NULL,
+           reference TEXT,
+           note TEXT,
+           created_at TEXT NOT NULL
+         );
+         INSERT INTO payments (id, document_id, direction, amount, method, paid_at, reference, created_at)
+           SELECT id, document_id, 'in', amount, method, paid_at, reference, created_at FROM payments_v1;
+         DROP TABLE payments_v1;
+         CREATE INDEX IF NOT EXISTS idx_payments_document_id ON payments(document_id);
+         COMMIT;",
+    )?;
+    Ok(())
 }
 
 pub fn get_meta(conn: &Connection, key: &str) -> rusqlite::Result<Option<String>> {

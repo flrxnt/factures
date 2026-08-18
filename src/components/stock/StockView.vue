@@ -11,8 +11,8 @@ import BaseButton from '../ui/BaseButton.vue'
 import BaseInput from '../ui/BaseInput.vue'
 import StockMovementDialog from './StockMovementDialog.vue'
 
-const { products, ensureLoaded: ensureProductsLoaded } = useProductCollection()
-const { warehouses, isLoading, ensureLoaded, quantityFor, saveWarehouse, removeWarehouse, createWarehouse } = useStockCollection()
+const { products, loadError: productsError, ensureLoaded: ensureProductsLoaded } = useProductCollection()
+const { warehouses, isLoading, loadError, ensureLoaded, quantityFor, saveWarehouse, removeWarehouse, createWarehouse } = useStockCollection()
 const { alert, confirm: confirmDialog } = useAppDialog()
 
 onMounted(() => {
@@ -73,6 +73,10 @@ async function handleRemoveWarehouse(id: string, name: string) {
     </div>
 
     <LoadingState v-if="isLoading" :rows="4" label="Chargement du stock…" />
+
+    <p v-else-if="loadError || productsError" class="rounded-2xl border border-dashed border-[#7d2e3b] py-16 text-center text-sm text-[#7d2e3b]">
+      Impossible de charger les données de stock : {{ loadError || productsError }}
+    </p>
 
     <template v-else>
       <div class="mb-6 rounded-2xl border border-hairline bg-surface p-5">

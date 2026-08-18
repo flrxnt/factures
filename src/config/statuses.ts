@@ -14,6 +14,7 @@ export interface StatusDescriptor {
 export const STATUS_ORDER: StatusDescriptor[] = [
   { value: 'draft', labelFr: 'Brouillon', color: '#928d7c' },
   { value: 'sent', labelFr: 'Envoyée', color: '#3d5772' },
+  { value: 'partially_paid', labelFr: 'Partiellement payée', color: '#a97c1f' },
   { value: 'paid', labelFr: 'Payée', color: '#3f6b4f' },
   { value: 'overdue', labelFr: 'En retard', color: '#7d2e3b' },
   { value: 'cancelled', labelFr: 'Annulée', color: '#928d7c' },
