@@ -48,6 +48,8 @@ pub struct DocumentDto {
     pub id: String,
     #[serde(default = "default_doc_type")]
     pub doc_type: String,
+    #[serde(default)]
+    pub custom_type_label: String,
     pub name: String,
     pub status: String,
     pub meta: DocumentMetaDto,

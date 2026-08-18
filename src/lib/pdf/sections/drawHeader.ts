@@ -3,7 +3,7 @@ import type { Invoice } from '../../../types/invoice'
 import type { PdfCursor } from '../pdfCursor'
 import { PDF_PAGE, PDF_CONTENT_WIDTH } from '../../../config/invoiceLayout'
 import { PDF_THEME, hexToRgb, trackedUpper } from '../pdfTheme'
-import { getDocumentTypeDescriptor } from '../../../config/documentTypes'
+import { getDocumentPdfTitle } from '../../../config/documentTypes'
 
 const LOGO_SIZE = 16
 
@@ -41,7 +41,7 @@ export function drawHeader(doc: jsPDF, invoice: Invoice, cursor: PdfCursor): voi
   const left = PDF_PAGE.marginX
   const right = left + PDF_CONTENT_WIDTH
   const startY = cursor.y
-  const docTitle = getDocumentTypeDescriptor(invoice.docType).pdfTitleFr
+  const docTitle = getDocumentPdfTitle(invoice)
 
   if (template === 'minimal') {
     doc.setFillColor(...hexToRgb(invoice.themeColor))

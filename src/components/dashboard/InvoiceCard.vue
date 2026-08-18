@@ -6,6 +6,7 @@ import type { Invoice, InvoiceStatus } from '../../types/invoice'
 import { computeInvoiceTotals } from '../../lib/calculations'
 import { formatCurrency } from '../../composables/useCurrencyFormat'
 import { UNTITLED_INVOICE_NAME } from '../../config/defaults'
+import { getDocumentLabel } from '../../config/documentTypes'
 import InvoicePreview from '../preview/InvoicePreview.vue'
 import StatusSelect from '../ui/StatusSelect.vue'
 import ActionsMenu from '../ui/ActionsMenu.vue'
@@ -81,7 +82,15 @@ function commitRename() {
           @keydown.esc="renaming = false"
           @blur="commitRename"
         />
-        <p v-else class="min-w-0 flex-1 truncate text-sm font-medium text-ink">{{ invoice.name || UNTITLED_INVOICE_NAME }}</p>
+        <p v-else class="flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-medium text-ink">
+          <span class="min-w-0 truncate">{{ invoice.name || UNTITLED_INVOICE_NAME }}</span>
+          <span
+            v-if="invoice.docType !== 'invoice'"
+            class="shrink-0 rounded-full border border-hairline-strong px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-muted uppercase"
+          >
+            {{ getDocumentLabel(invoice) }}
+          </span>
+        </p>
         <div class="opacity-0 transition group-hover:opacity-100">
           <ActionsMenu>
             <button type="button" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-paper-dim" @click="startRename">

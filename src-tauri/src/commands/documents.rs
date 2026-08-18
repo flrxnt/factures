@@ -15,14 +15,14 @@ pub fn upsert_document(conn: &Connection, doc: &DocumentDto) -> rusqlite::Result
 
     conn.execute(
         "INSERT INTO documents (
-            id, doc_type, document_number, name, status, issue_date, due_date, currency, locale,
+            id, doc_type, custom_type_label, document_number, name, status, issue_date, due_date, currency, locale,
             default_tax_rate_percent, seller_json, client_json, discount_type, discount_value,
             withholding_rate_percent, notes, terms_and_conditions, payment_json, payment_link,
             signature_label, signature_image_data_url, footer_note_left, footer_note_right,
             visible_sections_json, manual_subtotal, theme_color, template, created_at, updated_at
-        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25,?26,?27,?28)
+        ) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25,?26,?27,?28,?29,?30)
         ON CONFLICT(id) DO UPDATE SET
-            doc_type=excluded.doc_type, document_number=excluded.document_number, name=excluded.name,
+            doc_type=excluded.doc_type, custom_type_label=excluded.custom_type_label, document_number=excluded.document_number, name=excluded.name,
             status=excluded.status, issue_date=excluded.issue_date, due_date=excluded.due_date,
             currency=excluded.currency, locale=excluded.locale, default_tax_rate_percent=excluded.default_tax_rate_percent,
             seller_json=excluded.seller_json, client_json=excluded.client_json, discount_type=excluded.discount_type,
@@ -36,6 +36,7 @@ pub fn upsert_document(conn: &Connection, doc: &DocumentDto) -> rusqlite::Result
         params![
             doc.id,
             doc.doc_type,
+            doc.custom_type_label,
             doc.meta.invoice_number,
             doc.name,
             doc.status,
@@ -94,6 +95,7 @@ fn row_to_document_without_lines(row: &Row) -> rusqlite::Result<DocumentDto> {
     Ok(DocumentDto {
         id: row.get("id")?,
         doc_type: row.get("doc_type")?,
+        custom_type_label: row.get::<_, Option<String>>("custom_type_label")?.unwrap_or_default(),
         name: row.get("name")?,
         status: row.get("status")?,
         meta: DocumentMetaDto {

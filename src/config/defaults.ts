@@ -59,6 +59,7 @@ export function createEmptyInvoice(docType: DocumentType = 'invoice'): Invoice {
     id: crypto.randomUUID(),
     schemaVersion: 1,
     docType,
+    customTypeLabel: '',
     name: '',
     status: 'draft',
     meta: {

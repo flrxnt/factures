@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { CompanyInfo, DocumentType, InvoiceTemplate } from '../../types/invoice'
-import { getDocumentTypeDescriptor } from '../../config/documentTypes'
+import { getDocumentPdfTitle } from '../../config/documentTypes'
 
 const props = defineProps<{
   seller: CompanyInfo
   showLogo: boolean
   template: InvoiceTemplate
   docType: DocumentType
+  customTypeLabel: string
 }>()
 
-const docTitle = computed(() => getDocumentTypeDescriptor(props.docType).pdfTitleFr)
+const docTitle = computed(() => getDocumentPdfTitle({ docType: props.docType, customTypeLabel: props.customTypeLabel }))
 </script>
 
 <template>

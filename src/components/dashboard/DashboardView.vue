@@ -83,6 +83,7 @@ function normalize(value: string): string {
 const visibleStatuses = computed(() => STATUS_ORDER.filter((status) => invoices.value.some((i) => i.status === status.value)))
 const visibleDocTypes = computed(() => DOCUMENT_TYPE_ORDER.filter((docType) => invoices.value.some((i) => i.docType === docType.value)))
 const showDocTypeFilter = computed(() => isTauriEnv && visibleDocTypes.value.length > 1)
+const otherDocTypes = computed(() => DOCUMENT_TYPE_ORDER.filter((d) => d.value !== 'invoice'))
 
 const filteredInvoices = computed(() => {
   let result = invoices.value
@@ -119,7 +120,17 @@ async function handleRemove(id: string, name: string) {
         <ViewModeToggle v-if="invoices.length > 0" :model-value="viewMode" @update:model-value="setViewMode" />
         <input ref="importInputRef" type="file" accept="application/json" class="hidden" @change="handleImportFile" />
         <BaseButton variant="secondary" @click="triggerImport">Importer (JSON)</BaseButton>
-        <BaseButton v-if="isTauriEnv" variant="secondary" @click="emit('create', 'quote')">+ Nouveau devis</BaseButton>
+        <ActionsMenu v-if="isTauriEnv" label="Autre document">
+          <button
+            v-for="docType in otherDocTypes"
+            :key="docType.value"
+            type="button"
+            class="flex w-full items-center px-3 py-2 text-left text-sm text-ink hover:bg-paper-dim"
+            @click="emit('create', docType.value)"
+          >
+            {{ docType.labelFr }}
+          </button>
+        </ActionsMenu>
         <BaseButton variant="primary" @click="emit('create', 'invoice')">+ Nouvelle facture</BaseButton>
       </div>
     </div>

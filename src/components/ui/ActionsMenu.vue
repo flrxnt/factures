@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import type { Component } from 'vue'
-import { EllipsisVertical } from '@lucide/vue'
+import { ChevronDown, EllipsisVertical } from '@lucide/vue'
 
 const props = defineProps<{
   icon?: Component
   title?: string
+  /** When set, the trigger renders as a labeled pill button (text + chevron)
+   * instead of the default icon-only circle — for menus that act as a
+   * primary control (e.g. "+ Autre document") rather than a row's overflow
+   * actions. */
+  label?: string
 }>()
 
 const MENU_WIDTH = 192 // matches w-48
@@ -62,6 +67,18 @@ onUnmounted(() => {
 
 <template>
   <button
+    v-if="props.label"
+    ref="triggerEl"
+    type="button"
+    class="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-transparent px-4 py-2 text-sm font-medium tracking-wide text-ink ring-1 ring-inset ring-hairline-strong transition hover:bg-paper-dim active:scale-[0.97]"
+    @click="toggle"
+  >
+    <component :is="props.icon" v-if="props.icon" class="h-4 w-4" />
+    {{ props.label }}
+    <ChevronDown class="h-3.5 w-3.5" />
+  </button>
+  <button
+    v-else
     ref="triggerEl"
     type="button"
     :title="props.title ?? 'Actions'"

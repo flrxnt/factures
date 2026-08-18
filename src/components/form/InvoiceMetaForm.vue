@@ -18,8 +18,9 @@ function applyTaxRateToAllLines() {
 
 <template>
   <fieldset class="space-y-4">
-    <legend class="font-display text-lg text-ink">Informations de facture</legend>
-    <BaseInput v-model="invoice.meta.invoiceNumber" label="Numéro de facture" placeholder="FAC-2026-001" required />
+    <legend class="font-display text-lg text-ink">Informations du document</legend>
+    <BaseInput v-if="invoice.docType === 'custom'" v-model="invoice.customTypeLabel" label="Nom du type de document" placeholder="Ex. Fiche de suivi" required />
+    <BaseInput v-model="invoice.meta.invoiceNumber" label="Numéro de document" placeholder="DOC-2026-001" required />
     <div class="grid gap-4" :class="showDueDate ? 'grid-cols-3' : 'grid-cols-2'">
       <BaseInput v-model="invoice.meta.issueDate" type="date" label="Date d'émission" />
       <BaseInput v-if="showDueDate" v-model="invoice.meta.dueDate" type="date" label="Date d'échéance" />

@@ -6,7 +6,7 @@ import type { Invoice, InvoiceStatus } from '../../types/invoice'
 import { computeInvoiceTotals } from '../../lib/calculations'
 import { formatCurrency } from '../../composables/useCurrencyFormat'
 import { UNTITLED_INVOICE_NAME } from '../../config/defaults'
-import { getDocumentTypeDescriptor } from '../../config/documentTypes'
+import { getDocumentLabel } from '../../config/documentTypes'
 import StatusSelect from '../ui/StatusSelect.vue'
 import ActionsMenu from '../ui/ActionsMenu.vue'
 
@@ -67,7 +67,7 @@ function commitRename() {
           v-if="invoice.docType !== 'invoice'"
           class="shrink-0 rounded-full border border-hairline-strong px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-muted uppercase"
         >
-          {{ getDocumentTypeDescriptor(invoice.docType).labelFr }}
+          {{ getDocumentLabel(invoice) }}
         </span>
       </p>
       <p class="truncate text-xs text-muted">{{ invoice.client.name || 'Sans client' }} · {{ invoice.meta.issueDate }}</p>

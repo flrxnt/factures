@@ -238,6 +238,7 @@ function importInvoices(payload: unknown): ImportResult {
       continue
     }
     if (!entry.docType) entry.docType = 'invoice'
+    if (typeof entry.customTypeLabel !== 'string') entry.customTypeLabel = ''
     byId.set(entry.id, entry)
     importedEntries.push(entry)
     imported += 1
