@@ -18,6 +18,7 @@ import DashboardView from './components/dashboard/DashboardView.vue'
 import SettingsView from './components/settings/SettingsView.vue'
 import CatalogView from './components/catalog/CatalogView.vue'
 import StockView from './components/stock/StockView.vue'
+import ExpensesView from './components/expenses/ExpensesView.vue'
 import AppDialog from './components/ui/AppDialog.vue'
 import EmailComposeDialog from './components/ui/EmailComposeDialog.vue'
 
@@ -25,7 +26,7 @@ const isTauriEnv = isTauri()
 
 const { invoice, replaceInvoice } = useInvoiceStore()
 const { create, cloneForEditing, useAutosave } = useInvoiceCollection()
-const { view, openDashboard, openEditor, openSettings, openCatalog, openStock } = useAppNavigation()
+const { view, openDashboard, openEditor, openSettings, openCatalog, openStock, openExpenses } = useAppNavigation()
 const { exportPdf } = usePdfExport()
 const { undo, redo, reset: resetUndoHistory, canUndo, canRedo } = useUndoHistory(invoice)
 const { start: startTheme, stop: stopTheme } = useAppTheme()
@@ -97,6 +98,7 @@ onUnmounted(() => {
       @open-dashboard="openDashboard"
       @open-catalog="openCatalog"
       @open-stock="openStock"
+      @open-expenses="openExpenses"
       @open-settings="openSettings"
     />
 
@@ -124,6 +126,8 @@ onUnmounted(() => {
         <CatalogView v-else-if="view === 'catalog'" key="catalog" />
 
         <StockView v-else-if="view === 'stock'" key="stock" />
+
+        <ExpensesView v-else-if="view === 'expenses'" key="expenses" />
 
         <TwoPaneLayout v-else key="editor">
           <template #form>

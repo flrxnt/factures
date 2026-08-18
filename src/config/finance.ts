@@ -4,6 +4,8 @@ import type { Payment, PaymentDirection } from '../types/finance'
  * currency codes / product units elsewhere in the app. */
 export const PAYMENT_METHOD_PRESETS = ['Espèces', 'Virement', 'Mobile Money', 'Chèque', 'Carte bancaire']
 
+export const EXPENSE_CATEGORY_PRESETS = ['Fournitures', 'Loyer', 'Salaires', 'Transport', 'Marketing', 'Impôts & taxes', 'Autre']
+
 export function createEmptyPayment(direction: PaymentDirection = 'in', documentId: string | null = null): Payment {
   const now = new Date().toISOString()
   return {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isTauri } from '@tauri-apps/api/core'
 import type { Invoice } from '../../types/invoice'
 import { createEmptyLineItem } from '../../config/defaults'
 import SectionToggles from './SectionToggles.vue'
@@ -8,6 +9,7 @@ import ClientForm from './ClientForm.vue'
 import InvoiceMetaForm from './InvoiceMetaForm.vue'
 import LineItemsForm from './LineItemsForm.vue'
 import TotalsForm from './TotalsForm.vue'
+import PaymentsForm from './PaymentsForm.vue'
 import DiscountForm from './DiscountForm.vue'
 import WithholdingForm from './WithholdingForm.vue'
 import NotesForm from './NotesForm.vue'
@@ -62,6 +64,10 @@ function removeItem(id: string) {
 
     <div class="py-8">
       <TotalsForm :invoice="invoice" />
+    </div>
+
+    <div v-if="isTauri() && invoice.docType === 'invoice'" class="py-8">
+      <PaymentsForm :invoice="invoice" />
     </div>
 
     <div v-if="invoice.visibleSections.discount" class="py-8">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Files, Package, Settings, Warehouse } from '@lucide/vue'
+import { Files, Package, Receipt, Settings, Warehouse } from '@lucide/vue'
 import type { AppView } from '../../composables/useAppNavigation'
 
 defineProps<{
@@ -11,6 +11,7 @@ const emit = defineEmits<{
   'open-dashboard': []
   'open-catalog': []
   'open-stock': []
+  'open-expenses': []
   'open-settings': []
 }>()
 </script>
@@ -48,6 +49,16 @@ const emit = defineEmits<{
       >
         <Warehouse class="h-4 w-4 shrink-0" />
         Stock
+      </button>
+      <button
+        v-if="isTauriEnv"
+        type="button"
+        class="flex items-center gap-2.5 rounded-full px-3.5 py-2 text-left text-sm font-medium transition"
+        :class="view === 'expenses' ? 'bg-ink text-paper' : 'text-ink-soft hover:bg-paper-dim hover:text-ink'"
+        @click="emit('open-expenses')"
+      >
+        <Receipt class="h-4 w-4 shrink-0" />
+        Dépenses
       </button>
     </nav>
 
