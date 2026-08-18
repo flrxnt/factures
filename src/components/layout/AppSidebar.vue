@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Files, Package, Receipt, Settings, Warehouse } from '@lucide/vue'
+import { BarChart3, Files, Package, Receipt, Settings, Warehouse } from '@lucide/vue'
 import type { AppView } from '../../composables/useAppNavigation'
 
 defineProps<{
@@ -12,6 +12,7 @@ const emit = defineEmits<{
   'open-catalog': []
   'open-stock': []
   'open-expenses': []
+  'open-reports': []
   'open-settings': []
 }>()
 </script>
@@ -59,6 +60,16 @@ const emit = defineEmits<{
       >
         <Receipt class="h-4 w-4 shrink-0" />
         Dépenses
+      </button>
+      <button
+        v-if="isTauriEnv"
+        type="button"
+        class="flex items-center gap-2.5 rounded-full px-3.5 py-2 text-left text-sm font-medium transition"
+        :class="view === 'reports' ? 'bg-ink text-paper' : 'text-ink-soft hover:bg-paper-dim hover:text-ink'"
+        @click="emit('open-reports')"
+      >
+        <BarChart3 class="h-4 w-4 shrink-0" />
+        Rapports
       </button>
     </nav>
 

@@ -31,7 +31,7 @@ const { totals } = useInvoiceTotals(props.invoice)
       :show-logo="invoice.visibleSections.logo"
       :template="invoice.template"
       :doc-type="invoice.docType"
-      :custom-type-label="invoice.customTypeLabel"
+      :custom-type-label="invoice.customTypeLabel ?? ''"
     />
 
     <PreviewMeta
